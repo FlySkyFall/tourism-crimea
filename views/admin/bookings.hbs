@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Управление бронированиями</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="py-12">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl font-bold text-center mb-8">Управление бронированиями</h1>
+      
+      {{#if message}}
+        <p class="text-center {{#if (eq message 'success')}}text-green-600{{else}}text-red-600{{/if}} mb-6">{{message}}</p>
+      {{/if}}
+
+      {{#if bookings.length}}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {{#each bookings}}
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <h3 class="text-xl font-semibold mb-2">{{this.tourId.title}}</h3>
+              <p class="text-gray-600 mb-2">Пользователь: {{this.userId.username}} ({{this.userId.email}})</p>
+              <p class="text-gray-600 mb-2">Дата: {{formatDate this.bookingDate}}</p>
+              <p class="text-gray-600 mb-2">Участников: {{this.participants}}</p>
+              <p class="text-gray-600 mb-4">Статус: 
+                {{#if (eq this.status 'pending')}}Ожидает подтверждения
+                {{else if (eq this.status 'confirmed')}}Подтверждено
+                {{else}}Отменено{{/if}}
+              </p>
+              {{#unless (eq this.status 'cancelled')}}
+                <div class="flex gap-4">
+                  {{#if (eq this.status 'pending')}}
+                    <form action="/admin/bookings/{{this._id}}/confirm" method="POST">
+                      <input type="hidden" name="_csrf" value="{{../csrfToken}}">
+                      <button type="submit" class="bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded">Подтвердить</button>
+                    </form>
+                  {{/if}}
+                  <form action="/admin/bookings/{{this._id}}/cancel" method="POST">
+                    <input type="hidden" name="_csrf" value="{{../csrfToken}}">
+                    <button type="submit" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded">Отменить</button>
+                  </form>
+                </div>
+              {{/unless}}
+            </div>
+          {{/each}}
+        </div>
+      {{else}}
+        <p class="text-center text-gray-600">Бронирований нет</p>
+      {{/if}}
+    </div>
+  </section>
+
+  {{> footer}}
+</body>
+</html>

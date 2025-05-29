@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Мой профиль</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="py-12">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl font-bold text-center mb-8">Мой профиль</h1>
+
+      {{#if message}}
+        <p class="text-center {{#if (eq message 'Профиль успешно обновлён')}}text-green-600{{else}}text-red-600{{/if}} mb-6">{{message}}</p>
+      {{/if}}
+
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Личные данные</h2>
+        <p><strong>Имя пользователя:</strong> {{user.username}}</p>
+        <p><strong>Email:</strong> {{user.email}}</p>
+        <p><strong>Имя:</strong> {{user.profile.firstName}}</p>
+        <p><strong>Фамилия:</strong> {{user.profile.lastName}}</p>
+        <p><strong>Телефон:</strong> {{user.profile.phone}}</p>
+        <p><strong>Предпочтения:</strong> 
+          {{#each user.profile.preferences}}
+            {{this}}{{#unless @last}}, {{/unless}}
+          {{else}}
+            Нет предпочтений
+          {{/each}}
+        </p>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Редактировать профиль</h2>
+        <form action="/profile" method="POST" class="space-y-4">
+          <input type="hidden" name="_csrf" value="{{csrfToken}}">
+          <div>
+            <label for="firstName" class="block text-gray-700">Имя</label>
+            <input
+              type="text"
+              id="firstName"
+              name="firstName"
+              value="{{user.profile.firstName}}"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            >
+          </div>
+          <div>
+            <label for="lastName" class="block text-gray-700">Фамилия</label>
+            <input
+              type="text"
+              id="lastName"
+              name="lastName"
+              value="{{user.profile.lastName}}"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            >
+          </div>
+          <div>
+            <label for="phone" class="block text-gray-700">Телефон</label>
+            <input
+              type="text"
+              id="phone"
+              name="phone"
+              value="{{user.profile.phone}}"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            >
+          </div>
+          <div>
+            <label for="preferences" class="block text-gray-700">Предпочтения (через запятую)</label>
+            <input
+              type="text"
+              id="preferences"
+              name="preferences"
+              value="{{join user.profile.preferences ', '}}"
+              class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+            >
+          </div>
+          <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">Сохранить</button>
+        </form>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <h2 class="text-2xl font-semibold mb-4">Мои бронирования</h2>
+        {{#if bookings.length}}
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {{#each bookings}}
+              <div class="bg-gray-50 rounded-lg p-4">
+                <h3 class="text-lg font-semibold">
+                  <a href="/tours/{{this.tourId._id}}" class="text-blue-600 hover:underline">{{this.tourId.title}}</a>
+                </h3>
+                <p class="text-gray-600">Дата бронирования: {{formatDate this.bookingDate}}</p>
+                <p class="text-gray-600">Статус: 
+                  {{#if (eq this.status 'pending')}}Ожидает подтверждения
+                  {{else if (eq this.status 'confirmed')}}Подтверждено
+                  {{else}}Отменено{{/if}}
+                </p>
+                <p class="text-gray-600">Участников: {{this.participants}}</p>
+                {{#if (and this.roomType (or (eq this.tourId.accommodation.type 'hotel') (eq this.tourId.accommodation.type 'sanatorium')))}}
+                  <p class="text-gray-600">Тип номера: 
+                    {{#if (eq this.roomType 'standard')}}Обычный
+                    {{else if (eq this.roomType 'standardWithAC')}}Обычный с кондиционером
+                    {{else}}Люкс{{/if}}
+                  </p>
+                {{/if}}
+              </div>
+            {{/each}}
+          </div>
+        {{else}}
+          <p class="text-gray-600">У вас нет бронирований</p>
+        {{/if}}
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-semibold mb-4">Мои достижения</h2>
+        {{#if userAchievements.length}}
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {{#each userAchievements}}
+              <div class="bg-gray-50 rounded-lg p-4 flex items-center">
+                {{#if achievement.icon}}
+                  <img src="{{achievement.icon}}" alt="{{achievement.name}}" class="w-12 h-12 mr-4">
+                {{/if}}
+                <div>
+                  <h3 class="text-lg font-semibold">{{achievement.name}}</h3>
+                  <p class="text-gray-600">{{achievement.description}}</p>
+                  <p class="text-sm text-gray-500">Получено: {{formatDate awardedAt}}</p>
+                </div>
+              </div>
+            {{/each}}
+          </div>
+        {{else}}
+          <p class="text-gray-600">У вас пока нет достижений. Активно участвуйте в сообществе!</p>
+        {{/if}}
+      </div>
+    </div>
+  </section>
+
+  {{> footer}}
+</body>
+</html>

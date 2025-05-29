@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{csrfToken}}">
+  <title>Отзывы для {{tour.title}}</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="py-12">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl font-bold text-center mb-8">Отзывы для {{tour.title}}</h1>
+      
+      {{#if message}}
+        <p class="text-center {{#if (eq message 'success')}}text-green-600{{else}}text-red-600{{/if}} mb-6">{{message}}</p>
+      {{/if}}
+
+      {{#if tour.reviews.length}}
+        <div class="bg-white rounded-lg shadow-md p-6">
+          {{#each tour.reviews}}
+            <div class="border-b py-4 last:border-b-0">
+              <p class="text-gray-700 font-semibold">{{this.userId.username}}</p>
+              <p class="text-yellow-500">Оценка: {{this.rating}} / 5</p>
+              <p class="text-gray-600">{{this.comment}}</p>
+              <p class="text-gray-500 text-sm">{{formatDate this.createdAt}}</p>
+              <form action="/admin/tours/{{../tour._id}}/reviews/{{this._id}}/delete" method="POST" class="mt-2">
+                <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded">Удалить</button>
+              </form>
+            </div>
+          {{/each}}
+        </div>
+      {{else}}
+        <p class="text-center text-gray-600">Отзывов нет</p>
+      {{/if}}
+
+      <div class="mt-6">
+        <a href="/admin/tours" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Назад к турам</a>
+      </div>
+    </div>
+  </section>
+
+  {{> footer}}
+</body>
+</html>

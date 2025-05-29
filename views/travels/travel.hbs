@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Куда поехать</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+      {{#if error}}
+        <p class="text-red-600 text-center mb-8">{{error}}</p>
+      {{/if}}
+
+      <!-- Достопримечательности -->
+      <h2 class="text-3xl font-bold text-center mb-8">Популярные достопримечательности</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        {{#each attractions}}
+          <div class="place-card bg-gray-100 rounded-lg shadow-md overflow-hidden">
+            <img src="{{this.images.[0]}}" alt="{{this.name}}" class="w-full h-48 object-cover" onerror="this.src='/img/placeholder.jpg'">
+            <div class="p-4">
+              <h3 class="text-xl font-semibold mb-2">{{this.name}}</h3>
+              <p class="text-gray-600 mb-2">{{truncate this.description 100}}</p>
+              <p class="text-gray-600 mb-2"><strong>Регион:</strong> {{this.location.region}}</p>
+              <p class="text-gray-600 mb-4"><strong>Рейтинг:</strong> {{this.rating}} ({{this.reviewsCount}} отзывов)</p>
+              <a href="/travel/place/{{this._id}}" class="text-blue-600 hover:underline">Подробнее</a>
+            </div>
+          </div>
+        {{else}}
+          <p class="text-center text-gray-600 col-span-full">Достопримечательности не найдены</p>
+        {{/each}}
+      </div>
+
+      <!-- Рестораны -->
+      <h2 class="text-3xl font-bold text-center mb-8">Популярные рестораны</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+        {{#each restaurants}}
+          <div class="place-card bg-gray-100 rounded-lg shadow-md overflow-hidden">
+            <img src="{{this.images.[0]}}" alt="{{this.name}}" class="w-full h-48 object-cover" onerror="this.src='/img/placeholder.jpg'">
+            <div class="p-4">
+              <h3 class="text-xl font-semibold mb-2">{{this.name}}</h3>
+              <p class="text-gray-600 mb-2">{{truncate this.description 100}}</p>
+              <p class="text-gray-600 mb-2"><strong>Регион:</strong> {{this.location.region}}</p>
+              <p class="text-gray-600 mb-4"><strong>Рейтинг:</strong> {{this.rating}} ({{this.reviewsCount}} отзывов)</p>
+              <a href="/travel/place/{{this._id}}" class="text-blue-600 hover:underline">Подробнее</a>
+            </div>
+          </div>
+        {{else}}
+          <p class="text-center text-gray-600 col-span-full">Рестораны не найдены</p>
+        {{/each}}
+      </div>
+
+      <!-- Отели -->
+      <h2 class="text-3xl font-bold text-center mb-8">Популярные отели</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {{#each hotels}}
+          <div class="place-card bg-gray-100 rounded-lg shadow-md overflow-hidden">
+            <img src="{{this.images.[0]}}" alt="{{this.name}}" class="w-full h-48 object-cover" onerror="this.src='/img/placeholder.jpg'">
+            <div class="p-4">
+              <h3 class="text-xl font-semibold mb-2">{{this.name}}</h3>
+              <p class="text-gray-600 mb-2">{{truncate this.description 100}}</p>
+              <p class="text-gray-600 mb-2"><strong>Регион:</strong> {{this.location.region}}</p>
+              <p class="text-gray-600 mb-4"><strong>Рейтинг:</strong> {{this.rating}} ({{this.reviewsCount}} отзывов)</p>
+              <a href="/travel/place/{{this._id}}" class="text-blue-600 hover:underline">Подробнее</a>
+            </div>
+          </div>
+        {{else}}
+          <p class="text-center text-gray-600 col-span-full">Отели не найдены</p>
+        {{/each}}
+      </div>
+    </div>
+  </section>
+
+  {{> footer}}
+</body>
+</html>

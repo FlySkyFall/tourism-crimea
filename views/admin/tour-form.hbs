@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{csrfToken}}">
+  <title>{{#if tour}}Редактировать тур{{else}}Создать тур{{/if}}</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="py-12">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl font-bold text-center mb-8">{{#if tour}}Редактировать тур{{else}}Создать тур{{/if}}</h1>
+      
+      {{#if error}}
+        <p class="text-center text-red-600 mb-6">{{error}}</p>
+      {{/if}}
+      {{#if success}}
+        <p class="text-center text-green-600 mb-6">{{success}}</p>
+      {{/if}}
+
+      <form action="{{#if tour}}/admin/tours/{{tour._id}}{{else}}/admin/tours{{/if}}" method="POST" class="bg-white p-6 rounded-lg shadow-md">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+
+        <div class="mb-4">
+          <label for="title" class="block text-gray-700 mb-2">Название тура</label>
+          <input type="text" id="title" name="title" value="{{tour.title}}" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="description" class="block text-gray-700 mb-2">Описание</label>
+          <textarea id="description" name="description" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>{{tour.description}}</textarea>
+        </div>
+
+        <div class="mb-4">
+          <label for="type" class="block text-gray-700 mb-2">Тип тура</label>
+          <select id="type" name="type" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+            <option value="active" {{#if (eq tour.type 'active')}}selected{{/if}}>Активный</option>
+            <option value="passive" {{#if (eq tour.type 'passive')}}selected{{/if}}>Пассивный</option>
+            <option value="camping" {{#if (eq tour.type 'camping')}}selected{{/if}}>Кемпинг</option>
+            <option value="excursion" {{#if (eq tour.type 'excursion')}}selected{{/if}}>Экскурсионный</option>
+            <option value="health" {{#if (eq tour.type 'health')}}selected{{/if}}>Оздоровительный</option>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label for="durationDays" class="block text-gray-700 mb-2">Длительность (дни)</label>
+          <input type="number" id="durationDays" name="durationDays" value="{{tour.durationDays}}" min="1" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="price" class="block text-gray-700 mb-2">Цена (₽)</label>
+          <input type="number" id="price" name="price" value="{{tour.price}}" min="0" step="0.01" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="location.region" class="block text-gray-700 mb-2">Регион</label>
+          <input type="text" id="location.region" name="location.region" value="{{tour.location.region}}" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="location.coordinates.lat" class="block text-gray-700 mb-2">Широта (Latitude)</label>
+          <input type="number" id="location.coordinates.lat" name="location.coordinates.lat" value="{{tour.location.coordinates.lat}}" step="0.0001" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="location.coordinates.lng" class="block text-gray-700 mb-2">Долгота (Longitude)</label>
+          <input type="number" id="location.coordinates.lng" name="location.coordinates.lng" value="{{tour.location.coordinates.lng}}" step="0.0001" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="accommodation.name" class="block text-gray-700 mb-2">Название жилья</label>
+          <input type="text" id="accommodation.name" name="accommodation.name" value="{{tour.accommodation.name}}" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="accommodation.type" class="block text-gray-700 mb-2">Тип жилья</label>
+          <select id="accommodation.type" name="accommodation.type" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+            <option value="hotel" {{#if (eq tour.accommodation.type 'hotel')}}selected{{/if}}>Отель</option>
+            <option value="sanatorium" {{#if (eq tour.accommodation.type 'sanatorium')}}selected{{/if}}>Санаторий</option>
+            <option value="camping" {{#if (eq tour.accommodation.type 'camping')}}selected{{/if}}>Кемпинг</option>
+            <option value="retreat" {{#if (eq tour.accommodation.type 'retreat')}}selected{{/if}}>Ретрит</option>
+            <option value="none" {{#if (eq tour.accommodation.type 'none')}}selected{{/if}}>Без жилья</option>
+          </select>
+        </div>
+
+        <div class="mb-4">
+          <label for="minGroupSize" class="block text-gray-700 mb-2">Мин. участников</label>
+          <input type="number" id="minGroupSize" name="minGroupSize" value="{{tour.minGroupSize}}" min="1" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="maxGroupSize" class="block text-gray-700 mb-2">Макс. участников</label>
+          <input type="number" id="maxGroupSize" name="maxGroupSize" value="{{tour.maxGroupSize}}" min="1" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="season.start" class="block text-gray-700 mb-2">Начало сезона</label>
+          <input type="date" id="season.start" name="season.start" value="{{#if tour}}{{formatDate tour.season.start 'YYYY-MM-DD'}}{{/if}}" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+        </div>
+
+        <div class="mb-4">
+          <label for="season.end" class="block text-gray-700 mb-2">Конец сезона</label>
+          <input type="date" id="season.end" name="season.end" value="{{#if tour}}{{formatDate tour.season.end 'YYYY-MM-DD'}}{{/if}}" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600" required>
+        </div>
+
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">{{#if tour}}Сохранить{{else}}Создать{{/if}}</button>
+      </form>
+    </div>
+  </section>
+
+  {{> footer}}
+</body>
+</html>

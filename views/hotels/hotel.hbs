@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{csrfToken}}">
+  <title>{{hotel.name}} - Краснодарский край</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+  <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    #hotelMap { height: 400px; width: 100%; }
+    #calendar { display: block; min-height: 400px; width: 100%; }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl font-bold mb-6">{{hotel.name}}</h1>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <img src="{{hotel.images.[0]}}" alt="{{hotel.name}}" class="w-full h-96 object-cover rounded-lg">
+        </div>
+        <div>
+          <p class="text-gray-600 mb-4">{{hotel.description}}</p>
+          <p class="mb-2"><strong>Регион:</strong> {{hotel.location.region}}</p>
+          <p class="mb-2"><strong>Рейтинг:</strong> {{hotel.rating}} ({{hotel.reviewsCount}} отзывов)</p>
+          <p class="mb-2"><strong>Удобства:</strong> 
+            {{#each hotel.amenities}}
+              {{this}}{{#unless @last}}, {{/unless}}
+            {{else}}
+              Нет удобств
+            {{/each}}
+          </p>
+          <p class="mb-2"><strong>Типы номеров:</strong> 
+            {{#each hotel.roomTypes}}
+              {{lookup ../roomTypeLabels this}}{{#unless @last}}, {{/unless}}
+            {{else}}
+              Нет информации
+            {{/each}}
+          </p>
+          {{#if hotel.website}}
+            <p class="mb-4"><strong>Веб-сайт:</strong> <a href="{{hotel.website}}" target="_blank" class="text-blue-600 hover:underline">{{hotel.website}}</a></p>
+          {{/if}}
+        </div>
+      </div>
+
+      <div class="mt-8">
+        <h2 class="text-2xl font-bold mb-4">Местоположение</h2>
+        <div id="hotelMap" class="rounded-lg"></div>
+      </div>
+
+      <div class="mt-8">
+        <h2 class="text-2xl font-bold mb-4">Календарь доступности</h2>
+        <div id="calendar" class="bg-white p-4 rounded-lg"></div>
+      </div>
+
+      {{#if user}}
+        {{#if hasActiveBooking}}
+          <p class="mt-4 text-red-600">У вас уже есть активное бронирование</p>
+        {{else}}
+          <div class="mt-8 bg-gray-100 p-6 rounded-lg">
+            <h3 class="text-xl font-semibold mb-4">Забронировать отель</h3>
+            <form id="booking-form">
+              <input type="hidden" name="hotelId" value="{{hotel._id}}">
+              <input type="hidden" name="_csrf" value="{{csrfToken}}">
+              <div class="mb-4">
+                <label for="startDate" class="block text-gray-700 mb-2">Дата заезда:</label>
+                <input type="date" id="startDate" name="startDate" class="w-full border rounded-lg px-4 py-2" required>
+              </div>
+              <div class="mb-4">
+                <label for="endDate" class="block text-gray-700 mb-2">Дата выезда:</label>
+                <input type="date" id="endDate" name="endDate" class="w-full border rounded-lg px-4 py-2" required>
+              </div>
+              <div class="mb-4">
+                <label for="participants" class="block text-gray-700 mb-2">Количество гостей:</label>
+                <input type="number" id="participants" name="participants" min="1" max="{{hotel.capacity}}" class="w-full border rounded-lg px-4 py-2" required>
+              </div>
+              <div class="mb-4">
+                <label for="roomType" class="block text-gray-700 mb-2">Тип номера:</label>
+                <select id="roomType" name="roomType" class="w-full border rounded-lg px-4 py-2" required>
+                  <option value="">Выберите тип номера</option>
+                  {{#each hotel.roomTypes}}
+                    <option value="{{this}}">{{lookup ../roomTypeLabels this}}</option>
+                  {{/each}}
+                </select>
+              </div>
+              <p id="booking-error" class="text-red-600 mb-4 hidden"></p>
+              <p id="booking-success" class="text-green-600 mb-4 hidden"></p>
+              <button type="submit" id="book-hotel-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Забронировать</button>
+            </form>
+          </div>
+        {{/if}}
+      {{else}}
+        <p class="mt-4 text-gray-600">Войдите, чтобы забронировать отель.</p>
+      {{/if}}
+
+      <div class="mt-8">
+        <h2 class="text-2xl font-bold mb-4">Отзывы</h2>
+        {{#if error}}
+          <p class="text-red-600 mb-4">{{error}}</p>
+        {{/if}}
+        {{#if hotel.reviews.length}}
+          <div class="space-y-4">
+            {{#each hotel.reviews}}
+              <div class="bg-gray-100 p-4 rounded-lg">
+                <p class="text-gray-700 font-semibold">{{this.userId.username}}</p>
+                <p class="text-yellow-500">Оценка: {{this.rating}} / 5</p>
+                <p class="text-gray-600">{{this.comment}}</p>
+                <p class="text-gray-500 text-sm">{{formatDate this.createdAt}}</p>
+              </div>
+            {{/each}}
+          </div>
+        {{else}}
+          <p class="text-gray-600">Отзывов пока нет.</p>
+        {{/if}}
+
+        {{#if (and user (not hasReviewed))}}
+          <div class="mt-6 bg-gray-100 p-6 rounded-lg">
+            <h3 class="text-xl font-semibold mb-4">Оставить отзыв</h3>
+            <form action="/hotels/{{hotel._id}}/reviews" method="POST">
+              <input type="hidden" name="_csrf" value="{{csrfToken}}">
+              <div class="mb-4">
+                <label for="rating" class="block text-gray-700 mb-2">Оценка (1-5):</label>
+                <select name="rating" id="rating" class="w-full border rounded-lg px-4 py-2" required>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+              <div class="mb-4">
+                <label for="comment" class="block text-gray-700 mb-2">Комментарий:</label>
+                <textarea name="comment" id="comment" class="w-full border rounded-lg px-4 py-2" rows="4" required></textarea>
+              </div>
+              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Отправить отзыв</button>
+            </form>
+          </div>
+        {{else}}
+          <p class="mt-4 text-gray-600">Войдите, чтобы оставить отзыв.</p>
+        {{/if}}
+      </div>
+
+      <a href="/hotels" class="text-blue-600 hover:underline mt-4 inline-block">← Назад к списку</a>
+    </div>
+  </section>
+
+  {{> footer}}
+
+  <script>
+    window.hotelData = {
+      id: '{{hotel._id}}',
+      name: '{{hotel.name}}',
+      capacity: {{hotel.capacity}},
+      coordinates: {
+        lat: {{hotel.location.coordinates.lat}},
+        lng: {{hotel.location.coordinates.lng}}
+      }
+    };
+  </script>
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/ru.js'></script>
+  <script src="https://unpkg.com/@popperjs/core@2"></script>
+  <script src="https://unpkg.com/tippy.js@6"></script>
+  <script src="/js/hotelBooking.js"></script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Сообщество путешественников</title>
+  <link href="/css/style.css" rel="stylesheet"> <!-- Исправлено на style.css -->
+</head>
+<body class="bg-gray-100">
+  {{> navbar}}
+  
+  <div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold mb-4">Сообщество путешественников</h1>
+
+    {{#if success}}
+      <div class="mb-4 p-4 bg-green-100 text-green-700 rounded-lg">{{success}}</div>
+    {{/if}}
+    {{#if error}}
+      <div class="mb-4 p-4 bg-red-100 text-green-700 rounded-lg">{{error}}</div>
+    {{/if}}
+
+    {{#if user}}
+      <form id="create-post-form" class="mb-8 bg-white p-6 rounded-lg shadow-md">
+        <input type="hidden" name="_csrf" value="{{csrfToken}}">
+        <div class="mb-4">
+          <label for="title" class="block text-gray-700">Заголовок</label>
+          <input type="text" id="title" name="title" class="w-full border rounded px-4 py-2" required>
+        </div>
+        <div class="mb-4">
+          <label for="content" class="block text-gray-700">Содержание</label>
+          <textarea id="content" name="content" class="w-full border rounded px-4 py-2" required></textarea>
+        </div>
+        <div class="mb-4">
+          <label for="region" class="block text-gray-700">Регион</label>
+          <select id="region" name="region" class="w-full border rounded px-4 py-2" required>
+            <option value="">Выберите регион</option>
+            {{#each regions}}
+              <option value="{{name}}" {{#if (eq ../selectedRegion name)}}selected{{/if}}>{{name}}</option>
+            {{/each}}
+          </select>
+        </div>
+        <div class="mb by-4">
+          <label for="image" class="block text-gray-700">Изображение</label>
+          <input type="file" id="image" name="image" accept="image/*" class="w-full">
+        </div>
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Создать пост</button>
+      </form>
+    {{/if}}
+
+    <div class="mb-4 flex justify-between">
+      <div>
+        <label for="filter-region" class="mr-2">Фильтр по региону:</label>
+        <select id="filter-region" class="border rounded px-4 py-2">
+          <option value="all" {{#if (eq selectedRegion 'all')}}selected{{/if}}>Все регионы</option>
+          {{#each regions}}
+            <option value="{{name}}" {{#if (eq ../selectedRegion name)}}selected{{/if}}>{{name}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div>
+        <label for="sort" class="mr-2">Сортировка:</label>
+        <select id="sort" class="border rounded px-4 py-2">
+          <option value="newest" {{#if (eq selectedSort 'newest')}}selected{{/if}}>По новизне</option>
+          <option value="popular" {{#if (eq selectedSort 'popular')}}selected{{/if}}>По популярности</option>
+        </select>
+      </div>
+    </div>
+
+    {{#each posts}}
+      <div class="post bg-white p-6 rounded-lg shadow-md mb-4" data-id="{{_id}}">
+        <h2 class="text-xl font-bold">{{title}}</h2>
+        <p class="text-gray-600">Автор: {{author.username}} | {{formatDate createdAt}}</p>
+        <p>{{content}}</p>
+        {{#if image}}
+          <img src="/uploads/{{image}}" alt="{{title}}" class="mt-4 max-w-full h-auto">
+        {{/if}}
+        <p class="mt-2">Регион: {{region}}</p>
+        <div class="mt-4 flex items-center">
+          <button class="like-btn bg-gray-200 hover:bg-gray-300 px-4 py-1 rounded mr-2 text-gray-600" data-id="{{_id}}">
+            <span class="likes-count">Лайк ({{likes.length}})</span>
+          </button>
+          <button class="comment-btn bg-gray-200 hover:bg-gray-300 px-4 py-1 rounded text-gray-600" data-id="{{_id}}">Комментировать</button>
+        </div>
+        <div class="comments mt-4 hidden">
+          <div class="comments-list">
+            {{#each comments}}
+              <div class="comment text-sm text-gray-600 mb-2">
+                <strong>{{user.username}}</strong>: {{content}}
+                <span class="text-xs text-gray-400">{{formatDate createdAt}}</span>
+              </div>
+            {{/each}}
+          </div>
+          {{#if ../user}}
+            <form class="comment-form mb-4">
+              <input type="hidden" name="_csrf" value="{{../csrfToken}}">
+              <textarea name="content" class="w-full border rounded px-4 py-2" placeholder="Ваш комментарий" required></textarea>
+              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">Отправить</button>
+            </form>
+          {{/if}}
+        </div>
+      </div>
+    {{else}}
+      <p class="text-gray-600">Нет постов для отображения.</p>
+    {{/each}}
+  </div>
+  <script src="/js/community.js"></script>
+</body>
+</html>

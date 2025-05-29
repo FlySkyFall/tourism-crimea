@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{place.name}} - Подробности</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+      {{#if place}}
+        <div class="max-w-3xl mx-auto">
+          <h2 class="text-3xl font-bold mb-4">{{place.name}}</h2>
+          <img src="{{place.images.[0]}}" alt="{{place.name}}" class="w-full h-96 object-cover rounded-lg mb-6" onerror="this.src='/img/placeholder.jpg'">
+          <p class="text-gray-600 mb-4">{{place.description}}</p>
+          <p class="text-gray-500 mb-4"><strong>Категория:</strong> 
+            {{#if (eq place.category 'hotel')}}Отель
+            {{else if (eq place.category 'attraction')}}Достопримечательность
+            {{else if (eq place.category 'restaurant')}}Ресторан
+            {{else}}Неизвестная категория{{/if}}
+          </p>
+          {{#if place.location.region}}
+            <p class="text-gray-500 mb-4"><strong>Местоположение:</strong> {{place.location.region}}</p>
+          {{/if}}
+          {{#if place.website}}
+            <p class="text-gray-500 mb-4"><strong>Веб-сайт:</strong> <a href="{{place.website}}" target="_blank" class="text-blue-600 hover:underline">{{place.website}}</a></p>
+          {{/if}}
+          <a href="/travel" class="text-blue-600 hover:underline">← Назад к списку</a>
+        </div>
+      {{else}}
+        <p class="text-center text-gray-600">Место не найдено</p>
+      {{/if}}
+    </div>
+  </section>
+
+  {{> footer}}
+</body>
+</html>

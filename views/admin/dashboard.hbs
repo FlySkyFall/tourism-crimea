@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{csrfToken}}">
+  <title>Админ-панель</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="py-12">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl font-bold text-center mb-8">Админ-панель</h1>
+      
+      {{#if message}}
+        <p class="text-center {{#if (eq message 'success')}}text-green-600{{else}}text-red-600{{/if}} mb-6">{{message}}</p>
+      {{/if}}
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <a href="/admin/tours" class="bg-white rounded-lg shadow-md p-6 text-center hover:bg-gray-50">
+          <h3 class="text-xl font-semibold mb-2">Управление турами</h3>
+          <p class="text-gray-600">Создание, редактирование и удаление туров</p>
+        </a>
+        <a href="/admin/bookings" class="bg-white rounded-lg shadow-md p-6 text-center hover:bg-gray-50">
+          <h3 class="text-xl font-semibold mb-2">Управление бронированиями</h3>
+          <p class="text-gray-600">Просмотр и изменение статуса бронирований</p>
+        </a>
+        <a href="/admin/users" class="bg-white rounded-lg shadow-md p-6 text-center hover:bg-gray-50">
+          <h3 class="text-xl font-semibold mb-2">Управление пользователями</h3>
+          <p class="text-gray-600">Просмотр и изменение ролей пользователей</p>
+        </a>
+        <a href="/admin/posts" class="bg-white rounded-lg shadow-md p-6 text-center hover:bg-gray-50">
+          <h3 class="text-xl font-semibold mb-2">Управление постами</h3>
+          <p class="text-gray-600">Просмотр и изменение постов пользователей</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  {{> footer}}
+</body>
+</html>

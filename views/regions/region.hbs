@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{region.name}} - Краснодарский край</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    #regionMap { height: 400px; width: 100%; }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+      {{#if error}}
+        <p class="text-center text-red-600 mb-6">{{error}}</p>
+      {{else}}
+        <h1 class="text-3xl font-bold mb-6">{{region.name}}</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            {{#if region.images.length}}
+              <img src="{{region.images.[0]}}" alt="{{region.name}}" class="w-full h-96 object-cover rounded-lg">
+            {{else}}
+              <div class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+                <span class="text-gray-500">Изображение отсутствует</span>
+              </div>
+            {{/if}}
+          </div>
+          <div>
+            <p class="text-gray-600 mb-4">{{region.description}}</p>
+            <p class="mb-2"><strong>Климат:</strong> {{region.climate}}</p>
+            <p class="mb-2"><strong>Лучший сезон:</strong> {{region.bestSeason}}</p>
+            <p class="mb-2"><strong>Координаты:</strong> {{region.coordinates.lat}}, {{region.coordinates.lng}}</p>
+            <p class="mb-4"><strong>Достопримечательности:</strong> 
+              {{#each region.attractions}}
+                {{this}}{{#unless @last}}, {{/unless}}
+              {{else}}
+                Нет данных
+              {{/each}}
+            </p>
+            <a href="/tours?region={{region.name}}" class="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-lg">Найти туры</a>
+          </div>
+        </div>
+
+        <!-- Карта -->
+        <div class="mt-8">
+          <h2 class="text-2xl font-bold mb-4">Карта региона</h2>
+          <div id="regionMap" class="rounded-lg"></div>
+        </div>
+
+        <div class="mt-12">
+          <h2 class="text-2xl font-bold mb-4">Туры в регионе</h2>
+          <div class="flex justify-center mb-6">
+            <button data-type="all" class="region-filter-btn px-4 py-2 mx-1 rounded {{eq currentType 'all' 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}">Все</button>
+            <button data-type="active" class="region-filter-btn px-4 py-2 mx-1 rounded {{eq currentType 'active' 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}">Активный</button>
+            <button data-type="excursion" class="region-filter-btn px-4 py-2 mx-1 rounded {{eq currentType 'excursion' 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}">Экскурсионный</button>
+            <button data-type="camping" class="region-filter-btn px-4 py-2 mx-1 rounded {{eq currentType 'camping' 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}">Кемпинг</button>
+            <button data-type="health" class="region-filter-btn px-4 py-2 mx-1 rounded {{eq currentType 'health' 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}">Оздоровительный</button>
+            <button data-type="passive" class="region-filter-btn px-4 py-2 mx-1 rounded {{eq currentType 'passive' 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}">Пассивный</button>
+          </div>
+
+          <div class="tours-list grid grid-cols-1 md:grid-cols-3 gap-6">
+            {{#each tours}}
+              <div class="tour-card bg-gray-100 rounded-lg shadow-md overflow-hidden" data-category="{{this.type}}">
+                {{#if this.images.length}}
+                  <img src="{{this.images.[0]}}" alt="{{this.title}}" class="w-full h-48 object-cover">
+                {{else}}
+                  <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+                    <span class="text-gray-500">Изображение отсутствует</span>
+                  </div>
+                {{/if}}
+                <div class="p-4">
+                  <h3 class="text-xl font-semibold mb-2">{{this.title}}</h3>
+                  <p class="text-gray-600 mb-2">{{truncate this.description 100}}</p>
+                  <p class="text-blue-600 font-bold mb-4">{{this.price}} ₽</p>
+                  <a href="/tours/{{this._id}}" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Подробнее</a>
+                </div>
+              </div>
+            {{else}}
+              <p class="text-center text-gray-600 col-span-3">Нет туров для выбранного типа</p>
+            {{/each}}
+          </div>
+
+          {{#if totalPages}}
+            <div class="pagination flex justify-center mt-8">
+              {{#if (gt currentPage 1)}}
+                <a href="/regions/{{region._id}}?page={{subtract currentPage 1}}&type={{currentType}}" class="px-4 py-2 mx-1 bg-gray-200 rounded">Предыдущая</a>
+              {{/if}}
+              {{#range 1 totalPages}}
+                <a href="/regions/{{region._id}}?page={{this}}&type={{../currentType}}" class="px-4 py-2 mx-1 {{eq this ../currentPage 'bg-blue-600 text-white' 'bg-gray-200'}} rounded">{{this}}</a>
+              {{/range}}
+              {{#if (lt currentPage totalPages)}}
+                <a href="/regions/{{region._id}}?page={{add currentPage 1}}&type={{currentType}}" class="px-4 py-2 mx-1 bg-gray-200 rounded">Следующая</a>
+              {{/if}}
+            </div>
+          {{/if}}
+          <p class="text-center text-gray-600 mt-4">Страница: {{currentPage}} из {{totalPages}} (Туров на странице: {{toursOnPage}}, Всего туров: {{totalTours}})</p>
+        </div>
+      {{/if}}
+    </div>
+  </section>
+
+  {{> footer}}
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script src="/js/maps.js"></script>
+  <script src="/js/main.js"></script>
+  <script>
+    window.regionData = {
+      name: '{{region.name}}',
+      coordinates: {
+        lat: {{region.coordinates.lat}},
+        lng: {{region.coordinates.lng}}
+      }
+    };
+    window.attractionsData = [
+      {{#each attractions}}
+        {{#if this._id}}
+          {
+            _id: '{{this._id}}',
+            name: '{{this.name}}',
+            location: {
+              coordinates: {
+                lat: {{this.location.coordinates.coordinates.[1]}},
+                lng: {{this.location.coordinates.coordinates.[0]}}
+              }
+            },
+            distance: {{this.distance}}
+          }{{#unless @last}},{{/unless}}
+        {{/if}}
+      {{/each}}
+    ];
+    console.log('regionData:', window.regionData);
+    console.log('attractionsData:', window.attractionsData);
+  </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{csrfToken}}">
+  <title>Туры - Краснодарский край</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl font-bold mb-6">Туры по Краснодарскому краю</h1>
+
+      <form id="tour-filter-form" class="mb-8 bg-gray-100 p-6 rounded-lg" onsubmit="return false">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label for="type" class="block text-gray-700 mb-2">Тип тура:</label>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" class="filter-btn px-4 py-2 rounded {{#if (eq currentType 'all')}}bg-blue-600 text-white{{else}}bg-gray-200 text-gray-800{{/if}}" data-type="all">Все</button>
+              <button type="button" class="filter-btn px-4 py-2 rounded {{#if (eq currentType 'active')}}bg-blue-600 text-white{{else}}bg-gray-200 text-gray-800{{/if}}" data-type="active">Активный</button>
+              <button type="button" class="filter-btn px-4 py-2 rounded {{#if (eq currentType 'excursion')}}bg-blue-600 text-white{{else}}bg-gray-200 text-gray-800{{/if}}" data-type="excursion">Экскурсионный</button>
+              <button type="button" class="filter-btn px-4 py-2 rounded {{#if (eq currentType 'camping')}}bg-blue-600 text-white{{else}}bg-gray-200 text-gray-800{{/if}}" data-type="camping">Кемпинг</button>
+              <button type="button" class="filter-btn px-4 py-2 rounded {{#if (eq currentType 'health')}}bg-blue-600 text-white{{else}}bg-gray-200 text-gray-800{{/if}}" data-type="health">Оздоровительный</button>
+              <button type="button" class="filter-btn px-4 py-2 rounded {{#if (eq currentType 'passive')}}bg-blue-600 text-white{{else}}bg-gray-200 text-gray-800{{/if}}" data-type="passive">Пассивный</button>
+            </div>
+          </div>
+          <div>
+            <label for="tour-search" class="block text-gray-700 mb-2">Поиск:</label>
+            <input type="text" id="tour-search" name="search" value="{{currentSearch}}" class="w-full border rounded-lg px-4 py-2" placeholder="Название или описание">
+          </div>
+          <div>
+            <label for="region-filter" class="block text-gray-700 mb-2">Регион:</label>
+            <select id="region-filter" name="region" class="w-full border rounded-lg px-4 py-2">
+              <option value="" {{#unless currentRegion}}selected{{/unless}}>Все регионы</option>
+              {{#each regions}}
+                <option value="{{this.name}}" {{#if (eq ../currentRegion this.name)}}selected{{/if}}>{{this.name}}</option>
+              {{/each}}
+            </select>
+          </div>
+          <div>
+            <label for="min-price" class="block text-gray-700 mb-2">Минимальная цена:</label>
+            <input type="number" id="min-price" name="minPrice" value="{{currentMinPrice}}" class="w-full border rounded-lg px-4 py-2" placeholder="₽">
+          </div>
+          <div>
+            <label for="max-price" class="block text-gray-700 mb-2">Максимальная цена:</label>
+            <input type="number" id="max-price" name="maxPrice" value="{{currentMaxPrice}}" class="w-full border rounded-lg px-4 py-2" placeholder="₽">
+          </div>
+          <div>
+            <label for="start-date" class="block text-gray-700 mb-2">Дата начала сезона:</label>
+            <input type="date" id="start-date" name="startDate" value="{{currentStartDate}}" class="w-full border rounded-lg px-4 py-2">
+          </div>
+          <div>
+            <label for="end-date" class="block text-gray-700 mb-2">Дата конца сезона:</label>
+            <input type="date" id="end-date" name="endDate" value="{{currentEndDate}}" class="w-full border rounded-lg px-4 py-2">
+          </div>
+          <div>
+            <label for="sort-by" class="block text-gray-700 mb-2">Сортировка:</label>
+            <select id="sort-by" name="sortBy" class="w-full border rounded-lg px-4 py-2">
+              <option value="" {{#unless currentSortBy}}selected{{/unless}}>Без сортировки</option>
+              <option value="price-asc" {{#if (eq currentSortBy 'price-asc')}}selected{{/if}}>Цена: по возрастанию</option>
+              <option value="price-desc" {{#if (eq currentSortBy 'price-desc')}}selected{{/if}}>Цена: по убыванию</option>
+              <option value="rating-desc" {{#if (eq currentSortBy 'rating-desc')}}selected{{/if}}>Рейтинг: по убыванию</option>
+            </select>
+          </div>
+          <div>
+            <label for="min-duration" class="block text-gray-700 mb-2">Мин. продолжительность (дни):</label>
+            <input type="number" id="min-duration" name="minDuration" value="{{currentMinDuration}}" class="w-full border rounded-lg px-4 py-2" placeholder="Дни">
+          </div>
+          <div>
+            <label for="max-duration" class="block text-gray-700 mb-2">Макс. продолжительность (дни):</label>
+            <input type="number" id="max-duration" name="maxDuration" value="{{currentMaxDuration}}" class="w-full border rounded-lg px-4 py-2" placeholder="Дни">
+          </div>
+          <div>
+            <label for="amenities-filter" class="block text-gray-700 mb-2">Удобства:</label>
+            <select id="amenities-filter" name="amenities" multiple class="w-full border rounded-lg px-4 py-2">
+              {{#each amenitiesList}}
+                <option value="{{this}}" {{#includes ../currentAmenities this}}selected{{/includes}}>{{this}}</option>
+              {{/each}}
+            </select>
+          </div>
+          <div class="flex items-end">
+            <button type="button" id="apply-amenities" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Применить удобства</button>
+          </div>
+        </div>
+      </form>
+
+      {{#if error}}
+        <p class="text-red-600 mb-4">{{error}}</p>
+      {{/if}}
+
+      <div class="tours-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {{#each tours}}
+          <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <img src="{{this.images.[0]}}" alt="{{this.title}}" class="w-full h-48 object-cover">
+            <div class="p-4">
+              <h3 class="text-xl font-semibold mb-2">{{this.title}}</h3>
+              <p class="text-gray-600 mb-2">{{truncate this.description 100}}</p>
+              <p class="text-blue-600 font-bold mb-2">{{this.price}} ₽</p>
+              <p class="mb-2"><strong>Тип:</strong> 
+                {{#if (eq this.type 'active')}}Активный
+                {{else if (eq this.type 'excursion')}}Экскурсионный
+                {{else if (eq this.type 'camping')}}Кемпинг
+                {{else if (eq this.type 'health')}}Оздоровительный
+                {{else}}Пассивный{{/if}}
+              </p>
+              <p class="mb-2"><strong>Продолжительность:</strong> {{this.durationDays}} дней</p>
+              <p class="mb-2"><strong>Регион:</strong> {{this.location.region}}</p>
+              <p class="mb-2"><strong>Рейтинг:</strong> {{this.rating}} ({{this.reviewsCount}} отзывов)</p>
+              <a href="/tours/{{this._id}}" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded inline-block">Подробнее</a>
+            </div>
+          </div>
+        {{else}}
+          <p class="text-gray-600 col-span-3">Туры не найдены.</p>
+        {{/each}}
+      </div>
+
+      {{#if totalPages}}
+        <div class="mt-8 flex justify-center">
+          <nav class="pagination inline-flex"></nav>
+        </div>
+        <p class="mt-4 text-center text-gray-600">Страница: {{currentPage}} из {{totalPages}} (Туров на странице: {{toursOnPage}}, Всего туров: {{totalTours}})</p>
+      {{/if}}
+    </div>
+  </section>
+
+  {{> footer}}
+
+  <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"></script>
+  <script src="/js/tours.js"></script>
+</body>
+</html>

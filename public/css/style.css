@@ -1,0 +1,357 @@
+/* Импорт шрифтов */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');
+
+/* Базовые стили и сброс */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background-color: #FEFCE8; /* Кремовый фон */
+  color: #1E3A8A; /* Тёмно-синий текст */
+  line-height: 1.6;
+  font-size: 16px;
+  letter-spacing: -0.01em;
+}
+
+/* Заголовки */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Playfair Display', serif;
+  color: #1E3A8A;
+}
+
+h1 {
+  font-size: 2.5rem;
+  line-height: 1.2;
+}
+
+h2 {
+  font-size: 2rem;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+/* Контейнер */
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+/* Навигация */
+.navbar {
+  background-color: #FFFFFF;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  transition: background-color 0.3s ease;
+}
+
+.navbar.scrolled {
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+.navbar a {
+  color: #1E3A8A;
+  font-weight: 500;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.navbar a:hover {
+  color: #F97316; /* Оранжевый при наведении */
+  transform: translateY(-2px);
+}
+
+/* Мобильное меню */
+.navbar .mobile-menu {
+  transition: transform 0.3s ease-in-out;
+  transform: translateX(100%);
+}
+
+.navbar .mobile-menu.open {
+  transform: translateX(0);
+}
+
+/* Карточки (туры, отели, достопримечательности, рестораны, посты, новости) */
+.tour-card, .place-card, .hotel-card, .post, .news-card {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  opacity: 0;
+  animation: fadeInUp 0.5s ease forwards;
+}
+
+.tour-card:hover, .place-card:hover, .hotel-card:hover, .post:hover, .news-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.tour-card:nth-child(1), .place-card:nth-child(1), .hotel-card:nth-child(1), .post:nth-child(1), .news-card:nth-child(1) { animation-delay: 0.1s; }
+.tour-card:nth-child(2), .place-card:nth-child(2), .hotel-card:nth-child(2), .post:nth-child(2), .news-card:nth-child(2) { animation-delay: 0.2s; }
+.tour-card:nth-child(3), .place-card:nth-child(3), .hotel-card:nth-child(3), .post:nth-child(3), .news-card:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Кнопки */
+button, .btn, a.bg-blue-600, a.bg-blue-700 {
+  background-color: #F97316;
+  color: #FFFFFF;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 500;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+
+button:hover, .btn:hover, a.bg-blue-600:hover, a.bg-blue-700:hover {
+  background-color: #EA580C;
+  transform: translateY(-2px);
+}
+
+button:disabled {
+  background-color: #D1D5DB;
+  cursor: not-allowed;
+}
+
+/* Фильтры */
+.filter-btn, select, input[type="text"], input[type="number"], input[type="date"] {
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.filter-btn.bg-blue-600 {
+  background-color: #2DD4BF !important; /* Бирюзовый вместо синего */
+  color: #FFFFFF;
+}
+
+.filter-btn:hover {
+  border-color: #F97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+/* Пагинация */
+.pagination-btn {
+  background-color: #FFFFFF;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.pagination-btn.bg-blue-600 {
+  background-color: #2DD4BF !important;
+  color: #FFFFFF;
+}
+
+.pagination-btn:hover {
+  background-color: #F97316;
+  color: #FFFFFF;
+}
+
+/* Чат-виджет */
+#chat-widget {
+  position: fixed;
+  bottom: 1rem;
+  right: 1rem;
+  width: 320px;
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+  transform: translateY(100%);
+  opacity: 0;
+  display: none; /* Совместимость с chat.js */
+}
+
+#chat-widget[style*="display: flex"] {
+  transform: translateY(0);
+  opacity: 1;
+  animation: slideInUp 0.3s ease forwards;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+#chat-toggle {
+  background-color: #F97316;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+#chat-toggle:hover {
+  transform: scale(1.1);
+  background-color: #EA580C;
+}
+
+.message.user-message {
+  background-color: #F97316;
+  color: #FFFFFF;
+  border-radius: 12px 12px 0 12px;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem;
+  align-self: flex-end;
+}
+
+.message.bot-message {
+  background-color: #2DD4BF;
+  color: #FFFFFF;
+  border-radius: 12px 12px 12px 0;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem;
+  align-self: flex-start;
+}
+
+/* Формы */
+input, textarea, select {
+  background-color: #FFFFFF;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  padding: 0.75rem;
+  width: 100%;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: #F97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  outline: none;
+}
+
+/* Футер */
+footer {
+  background-color: #1E3A8A;
+  color: #FFFFFF;
+  padding: 2rem 0;
+}
+
+footer a {
+  color: #2DD4BF;
+  transition: color 0.2s ease;
+}
+
+footer a:hover {
+  color: #F97316;
+}
+
+/* Ошибки */
+.text-red-600, #news-error, #payment-error, #booking-error {
+  color: #EF4444 !important;
+}
+
+/* Календарь (FullCalendar) */
+.fc {
+  background-color: #FFFFFF;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.fc-button {
+  background-color: #F97316 !important;
+  border: none !important;
+}
+
+.fc-button:hover {
+  background-color: #EA580C !important;
+}
+
+/* Карты Leaflet */
+#tourMap, #regionMap, #attractionMap, #hotelMap {
+  height: 400px;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+
+.leaflet-popup-content a {
+  color: #F97316;
+  font-weight: 500;
+}
+
+.leaflet-popup-content a:hover {
+  color: #EA580C;
+}
+
+/* Новости */
+#news-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Сообщество */
+.like-btn.text-red-600 {
+  color: #EF4444 !important;
+}
+
+.comment-form textarea {
+  resize: vertical;
+}
+
+/* Медиа-запросы для адаптивности */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem;
+  }
+  h2 {
+    font-size: 1.75rem;
+  }
+  .navbar .mobile-menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 75%;
+    height: 100%;
+    background-color: #FFFFFF;
+    box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+  }
+  .tour-card, .place-card, .hotel-card, .post, .news-card {
+    width: 100%;
+  }
+  #chat-widget {
+    width: 100%;
+    bottom: 0;
+    right: 0;
+    border-radius: 12px 12px 0 0;
+  }
+  #tourMap, #regionMap, #attractionMap, #hotelMap {
+    height: 300px;
+  }
+  #news-grid {
+    grid-template-columns: 1fr;
+  }
+}

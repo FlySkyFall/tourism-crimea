@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "@faker-js/faker": "^9.7.0",
+    "bcrypt": "^5.1.1",
+    "connect-flash": "^0.1.1",
+    "cookie-parser": "^1.4.7",
+    "crypto": "^1.0.1",
+    "csurf": "^1.10.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-handlebars": "^8.0.1",
+    "express-session": "^1.18.1",
+    "express-validator": "^7.2.1",
+    "mongoose": "^8.13.2",
+    "multer": "^1.4.5-lts.2",
+    "node-cron": "^3.0.3",
+    "passport": "^0.7.0",
+    "passport-local": "^1.0.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
+    "winston": "^3.17.0"
+  }
+}

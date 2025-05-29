@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{csrfToken}}">
+  <title>Управление турами</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="py-12">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl font-bold text-center mb-8">Управление турами</h1>
+      
+      {{#if error}}
+        <p class="text-center text-red-600 mb-6">{{error}}</p>
+      {{/if}}
+      {{#if success}}
+        <p class="text-center text-green-600 mb-6">{{success}}</p>
+      {{/if}}
+
+      <div class="mb-6">
+        <a href="/admin/tours/new" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">Создать тур</a>
+      </div>
+
+      {{#if tours.length}}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {{#each tours}}
+            <div class="bg-white rounded-lg shadow-md p-6">
+              <h3 class="text-xl font-semibold mb-2">{{this.title}}</h3>
+              <p class="text-gray-600 mb-2">{{this.description}}</p>
+              <p class="text-gray-600 mb-2">Мин. участников: {{this.minGroupSize}}</p>
+              <p class="text-gray-600 mb-2">Макс. участников: {{this.maxGroupSize}}</p>
+              <p class="text-gray-600 mb-2">Цена: {{this.price}} ₽</p>
+              <p class="text-gray-600 mb-2">Длительность: {{this.durationDays}} дней</p>
+              <p class="text-gray-600 mb-2">Тип: {{this.type}}</p>
+              <p class="text-gray-600 mb-2">Жильё: {{this.accommodation.name}} ({{this.accommodation.type}})</p>
+              <p class="text-gray-600 mb-2">Регион: {{this.location.region}}</p>
+              <p class="text-gray-600 mb-2">Координаты: Широта {{this.location.coordinates.lat}}, Долгота {{this.location.coordinates.lng}}</p>
+              <p class="text-gray-600 mb-4">Сезон: {{formatDate this.season.start}} - {{formatDate this.season.end}}</p>
+              <div class="flex gap-4">
+                <a href="/admin/tours/{{this._id}}/edit" class="bg-yellow-600 hover:bg-yellow-700 text-white py-2 px-4 rounded">Редактировать</a>
+                <form action="/admin/tours/{{this._id}}/delete" method="POST">
+                  <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                  <button type="submit" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded">Удалить</button>
+                </form>
+              </div>
+            </div>
+          {{/each}}
+        </div>
+      {{else}}
+        <p class="text-center text-gray-600">Туров нет</p>
+      {{/if}}
+    </div>
+  </section>
+
+  {{> footer}}
+
+  <script>
+    document.querySelectorAll('form[method="POST"]').forEach(form => {
+      form.addEventListener('submit', (e) => {
+        const csrfInput = form.querySelector('input[name="_csrf"]');
+        if (csrfInput) {
+          fetch('/csrf-token', {
+            method: 'GET',
+            credentials: 'same-origin', // Убедимся, что куки отправляются
+          })
+            .then(response => response.json())
+            .then(data => {
+              csrfInput.value = data.csrfToken;
+              console.log('Updated CSRF token:', data.csrfToken); // Отладка
+            })
+            .catch(err => console.error('Failed to fetch CSRF token:', err))
+            .finally(() => form.submit()); // Отправка формы после обновления
+          e.preventDefault(); // Предотвращаем стандартную отправку
+        }
+      });
+    });
+  </script>
+</body>
+</html>

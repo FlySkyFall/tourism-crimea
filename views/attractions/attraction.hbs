@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{attraction.name}} - Краснодарский край</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    #attractionMap { height: 400px; width: 100%; }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+      <h1 class="text-3xl font-bold mb-6">{{attraction.name}}</h1>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
+          <img src="{{attraction.images.[0]}}" alt="{{attraction.name}}" class="w-full h-96 object-cover rounded-lg">
+        </div>
+        <div>
+          <p class="text-gray-600 mb-4">{{attraction.description}}</p>
+          <p class="mb-2"><strong>Регион:</strong> {{attraction.location.region}}</p>
+          <p class="mb-2"><strong>Категория:</strong> 
+            {{#if (eq attraction.category 'historical')}}Историческая
+            {{else if (eq attraction.category 'natural')}}Природная
+            {{else if (eq attraction.category 'cultural')}}Культурная
+            {{else}}Другая{{/if}}
+          </p>
+          {{#if attraction.website}}
+            <p class="mb-4"><strong>Веб-сайт:</strong> <a href="{{attraction.website}}" target="_blank" class="text-blue-600 hover:underline">{{attraction.website}}</a></p>
+          {{/if}}
+        </div>
+      </div>
+
+      <!-- Карта -->
+      <div class="mt-8">
+        <h2 class="text-2xl font-bold mb-4">Местоположение</h2>
+        <div id="attractionMap" class="rounded-lg"></div>
+      </div>
+
+      <a href="/attractions" class="text-blue-600 hover:underline mt-4 inline-block">← Назад к списку</a>
+    </div>
+  </section>
+
+  {{> footer}}
+
+  <script>
+    window.attractionData = {
+      name: '{{attraction.name}}',
+      coordinates: {
+        lat: {{attraction.location.coordinates.coordinates.[1]}},
+        lng: {{attraction.location.coordinates.coordinates.[0]}}
+      }
+    };
+    console.log('attractionData:', window.attractionData);
+  </script>
+</body>
+</html>

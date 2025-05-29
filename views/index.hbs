@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Туристически-рекреационная зона Краснодарского края</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-gray-100 font-sans">
+  {{> navbar}}
+
+  <section class="bg-cover bg-center h-96 flex items-center justify-center text-white" style="background-image: url('/img/krasnodar-hero.jpg')">
+    <div class="text-center">
+      <h1 class="text-4xl md:text-5xl font-bold mb-4">Открой Краснодарский край</h1>
+      <p class="text-lg md:text-xl mb-6">Уникальные туры и отдых на любой вкус</p>
+      <a href="/tours" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">Посмотреть туры</a>
+    </div>
+  </section>
+
+  <section class="py-12 bg-white">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-8">Популярные туры</h2>
+      <div class="flex justify-center mb-6">
+        <button class="filter-btn px-4 py-2 mx-1 rounded {{eq currentType 'all' 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}" data-category="all">Все</button>
+        <button class="filter-btn px-4 py-2 mx-1 rounded {{eq currentType 'active' 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}" data-category="active">Активный</button>
+        <button class="filter-btn px-4 py-2 mx-1 rounded {{eq currentType 'excursion' 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}" data-category="excursion">Экскурсионный</button>
+        <button class="filter-btn px-4 py-2 mx-1 rounded {{eq currentType 'camping' 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}" data-category="camping">Кемпинг</button>
+        <button class="filter-btn px-4 py-2 mx-1 rounded {{eq currentType 'health' 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}" data-category="health">Оздоровительный</button>
+        <button class="filter-btn px-4 py-2 mx-1 rounded {{eq currentType 'passive' 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}" data-category="passive">Пассивный</button>
+      </div>
+      <div class="tours-grid grid grid-cols-1 md:grid-cols-3 gap-4">
+        {{#each featuredTours}}
+          <div class="tour-card w-80 mx-auto">
+            <div class="bg-gray-100 rounded-lg shadow-md overflow-hidden">
+              <img src="{{this.images.[0]}}" alt="{{this.title}}" class="w-full h-48 object-cover" onerror="this.src='/img/placeholder.jpg'">
+              <div class="p-4">
+                <h3 class="text-xl font-semibold mb-2">{{this.title}}</h3>
+                <p class="text-gray-600 mb-2">{{this.description}}</p>
+                <p class="text-blue-600 font-bold mb-4">{{this.price}} ₽</p>
+                <a href="/tours/{{this._id}}" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Подробнее</a>
+              </div>
+            </div>
+          </div>
+        {{else}}
+          <p class="text-center text-gray-600 col-span-3">Нет доступных туров</p>
+        {{/each}}
+      </div>
+      {{#if totalPages}}
+        <div class="pagination flex justify-center mt-6">
+          {{#if (gt currentPage 1)}}
+            <button data-page="{{subtract currentPage 1}}" data-type="{{currentType}}" class="pagination-btn px-4 py-2 mx-1 bg-gray-200 rounded">Предыдущая</button>
+          {{else}}
+            <span class="pagination-btn px-4 py-2 mx-1 bg-gray-200 rounded opacity-50 cursor-not-allowed">Предыдущая</span>
+          {{/if}}
+          {{#each (range 1 totalPages)}}
+            <button data-page="{{this}}" data-type="{{../currentType}}" class="pagination-btn px-4 py-2 mx-1 rounded {{eq this ../currentPage 'bg-blue-600 text-white' 'bg-gray-200 text-gray-800'}}">{{this}}</button>
+          {{/each}}
+          {{#if (lt currentPage totalPages)}}
+            <button data-page="{{add currentPage 1}}" data-type="{{currentType}}" class="pagination-btn px-4 py-2 mx-1 bg-gray-200 rounded">Следующая</button>
+          {{else}}
+            <span class="pagination-btn px-4 py-2 mx-1 bg-gray-200 rounded opacity-50 cursor-not-allowed">Следующая</span>
+          {{/if}}
+        </div>
+        <p class="text-center text-gray-600 mt-4">Страница: {{currentPage}} из {{totalPages}} (Туров на странице: {{toursOnPage}}, Всего туров: {{totalTours}})</p>
+      {{/if}}
+      <div id="tour-error" class="text-center text-red-600 mt-4 hidden"></div>
+    </div>
+  </section>
+
+  <section class="py-12 bg-gray-100">
+    <div class="container mx-auto px-4">
+      <h2 class="text-3xl font-bold text-center mb-8">Регионы Краснодарского края</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {{#each regions}}
+          <div class="region-card bg-white rounded-lg shadow-md overflow-hidden">
+            <img src="{{this.images.[0]}}" alt="{{this.name}}" class="w-full h-48 object-cover">
+            <div class="p-4">
+              <h3 class="text-xl font-semibold mb-2">{{this.name}}</h3>
+              <p class="text-gray-600 mb-4">{{this.description}}</p>
+              <a href="/regions/{{this._id}}" class="text-blue-600 hover:underline">Узнать больше</a>
+            </div>
+          </div>
+        {{else}}
+          <p class="text-center text-gray-600">Нет доступных регионов</p>
+        {{/each}}
+      </div>
+    </div>
+  </section>
+
+  {{> footer}}
+
+  <script src="/js/main.js"></script>
+</body>
+</html>
