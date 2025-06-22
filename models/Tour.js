@@ -17,6 +17,20 @@ const tourSchema = new mongoose.Schema({
       lng: { type: Number, required: true },
     },
   },
+  route: {
+    type: [{
+      lat: { type: Number, required: true },
+      lng: { type: Number, required: true }
+    }],
+    required: false,
+    default: undefined,
+    validate: {
+      validator: function(v) {
+        return this.type !== 'excursion' || (Array.isArray(v) && v.length > 0);
+      },
+      message: 'Маршрут обязателен для экскурсионных туров и должен содержать хотя бы одну точку.'
+    }
+  },
   accommodation: {
     hotel: { type: mongoose.Schema.Types.ObjectId, ref: 'Hotel', required: false },
     type: {
@@ -24,7 +38,7 @@ const tourSchema = new mongoose.Schema({
       enum: ['hotel', 'sanatorium', 'camping', 'retreat', 'none'],
       required: true,
     },
-    amenities: [{ type: String }], // Добавлено поле для удобств
+    amenities: [{ type: String }],
   },
   activities: [
     {
@@ -52,6 +66,24 @@ const tourSchema = new mongoose.Schema({
   hotelCapacity: { type: Number, min: 1 },
   images: [String],
   isFeatured: { type: Boolean, default: false },
+  isHotDeal: { type: Boolean, default: false }, // Пометка горящего тура
+  discounts: {
+    groupDiscount: { // Скидка за группу больше 5 человек
+      enabled: { type: Boolean, default: false },
+      minParticipants: { type: Number, default: 5 },
+      percentage: { type: Number, default: 0, min: 0, max: 100 },
+    },
+    seasonalDiscount: { // Сезонная скидка
+      enabled: { type: Boolean, default: false },
+      startDate: { type: Date },
+      endDate: { type: Date },
+      percentage: { type: Number, default: 0, min: 0, max: 100 },
+    },
+    hotDealDiscount: { // Скидка для горящих туров
+      enabled: { type: Boolean, default: false },
+      percentage: { type: Number, default: 0, min: 0, max: 100 },
+    },
+  },
   reviews: [
     {
       userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

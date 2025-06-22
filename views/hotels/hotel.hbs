@@ -8,6 +8,7 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="/css/style.css">
   <style>
     #hotelMap { height: 400px; width: 100%; }
@@ -22,28 +23,43 @@
       <h1 class="text-3xl font-bold mb-6">{{hotel.name}}</h1>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div>
-          <img src="{{hotel.images.[0]}}" alt="{{hotel.name}}" class="w-full h-96 object-cover rounded-lg">
+          {{#if hotel.images}}
+            <img src="{{hotel.images.[0]}}" alt="{{hotel.name}}" class="w-full h-96 object-cover rounded-lg">
+          {{else}}
+            <div class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+              <p class="text-gray-500">Изображение отсутствует</p>
+            </div>
+          {{/if}}
         </div>
         <div>
-          <p class="text-gray-600 mb-4">{{hotel.description}}</p>
-          <p class="mb-2"><strong>Регион:</strong> {{hotel.location.region}}</p>
-          <p class="mb-2"><strong>Рейтинг:</strong> {{hotel.rating}} ({{hotel.reviewsCount}} отзывов)</p>
+          <p class="text-gray-600 mb-4">{{#if hotel.description}}{{hotel.description}}{{else}}Описание отсутствует{{/if}}</p>
+          <p class="mb-2"><strong>Регион:</strong> {{#if hotel.location.region}}{{hotel.location.region}}{{else}}Не указан{{/if}}</p>
+          <p class="mb-2"><strong>Рейтинг:</strong> {{#if hotel.rating}}{{hotel.rating}} {{else}}Нет рейтинга{{/if}}</p>
           <p class="mb-2"><strong>Удобства:</strong> 
-            {{#each hotel.amenities}}
-              {{this}}{{#unless @last}}, {{/unless}}
+            {{#if hotel.amenities}}
+              {{#each hotel.amenities}}
+                {{this}}{{#unless @last}}, {{/unless}}
+              {{else}}
+                Нет удобств
+              {{/each}}
             {{else}}
               Нет удобств
-            {{/each}}
+            {{/if}}
           </p>
           <p class="mb-2"><strong>Типы номеров:</strong> 
-            {{#each hotel.roomTypes}}
-              {{lookup ../roomTypeLabels this}}{{#unless @last}}, {{/unless}}
+            {{#if hotel.roomTypes}}
+              {{#each hotel.roomTypes}}
+                {{lookup ../roomTypeLabels this}}{{#unless @last}}, {{/unless}}
+              {{else}}
+                Нет информации
+              {{/each}}
             {{else}}
               Нет информации
-            {{/each}}
+            {{/if}}
           </p>
+          <p class="mb-2"><strong>Цена за ночь:</strong> {{formatPrice (default hotel.basePrice 0)}} ₽</p>
           {{#if hotel.website}}
-            <p class="mb-4"><strong>Веб-сайт:</strong> <a href="{{hotel.website}}" target="_blank" class="text-blue-600 hover:underline">{{hotel.website}}</a></p>
+            <p class="mb-2"><strong>Веб-сайт:</strong> <a href="{{hotel.website}}" target="_blank" class="text-blue-600 hover:underline">{{hotel.website}}</a></p>
           {{/if}}
         </div>
       </div>
@@ -67,6 +83,7 @@
             <form id="booking-form">
               <input type="hidden" name="hotelId" value="{{hotel._id}}">
               <input type="hidden" name="_csrf" value="{{csrfToken}}">
+              <input type="hidden" id="totalPrice" name="totalPrice">
               <div class="mb-4">
                 <label for="startDate" class="block text-gray-700 mb-2">Дата заезда:</label>
                 <input type="date" id="startDate" name="startDate" class="w-full border rounded-lg px-4 py-2" required>
@@ -88,6 +105,7 @@
                   {{/each}}
                 </select>
               </div>
+              <p id="total-price-display" class="text-lg font-semibold mb-4">Итоговая цена: 0 ₽</p>
               <p id="booking-error" class="text-red-600 mb-4 hidden"></p>
               <p id="booking-success" class="text-green-600 mb-4 hidden"></p>
               <button type="submit" id="book-hotel-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Забронировать</button>
@@ -152,16 +170,31 @@
   {{> footer}}
 
   <script>
-    window.hotelData = {
-      id: '{{hotel._id}}',
-      name: '{{hotel.name}}',
-      capacity: {{hotel.capacity}},
-      coordinates: {
-        lat: {{hotel.location.coordinates.lat}},
-        lng: {{hotel.location.coordinates.lng}}
-      }
-    };
+    try {
+      window.hotelData = {
+        id: '{{hotel._id}}',
+        name: '{{#if hotel.name}}{{hotel.name}}{{else}}Без названия{{/if}}',
+        capacity: {{#if hotel.capacity}}{{hotel.capacity}}{{else}}10{{/if}},
+        coordinates: {
+          lat: {{#if hotel.location.coordinates.lat}}{{hotel.location.coordinates.lat}}{{else}}45.0355{{/if}},
+          lng: {{#if hotel.location.coordinates.lng}}{{hotel.location.coordinates.lng}}{{else}}38.9753{{/if}}
+        },
+        rating: {{#if hotel.rating}}{{hotel.rating}}{{else}}0{{/if}},
+        roomTypes: {{#if hotel.roomTypes}}[{{#each hotel.roomTypes}}'{{this}}'{{#unless @last}},{{/unless}}{{/each}}]{{else}}[]{{/if}},
+        basePrice: {{#if hotel.basePrice}}{{hotel.basePrice}}{{else}}5000{{/if}},
+        availabilityUrl: '/hotels/{{hotel._id}}/availability'
+      };
+      // Передаем данные пользователя
+      window.user = {{{json user}}};
+      console.log('window.hotelData initialized:', window.hotelData);
+      console.log('window.user initialized:', window.user);
+    } catch (error) {
+      console.error('Error initializing window.hotelData or window.user:', error);
+      window.hotelData = null;
+      window.user = null;
+    }
   </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
   <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/ru.js'></script>
   <script src="https://unpkg.com/@popperjs/core@2"></script>

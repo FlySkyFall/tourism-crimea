@@ -79,71 +79,7 @@
   </style>
 </head>
 <body>
-  <!-- Шапка -->
-  <header>
-    <nav class="navbar navbar-expand-lg navbar-light" style="background-color: #28a745;">
-      <div class="container">
-        <a class="navbar-brand text-white" href="/">
-          Туры Краснодарского края
-        </a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ms-auto">
-            {{#if user}}
-              {{#if (eq user.role "admin")}}
-                <li class="nav-item">
-                  <a class="nav-link text-white" href="/admin">Админ-панель</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link text-white" href="/">Главная</a>
-                </li>
-                <li class="nav-item disabled">
-                  <span class="nav-link text-white">Привет, {{user.username}}!</span>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link text-white" href="/profile">Мой профиль</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link text-white" href="/auth/logout">Выйти</a>
-                </li>
-              {{else}}
-                <li class="nav-item">
-                  <a class="nav-link text-white" href="/">Главная</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link text-white" href="/tours">Туры</a>
-                </li>
-                <li class="nav-item disabled">
-                  <span class="nav-link text-white">Привет, {{user.username}}!</span>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link text-white" href="/profile">Мой профиль</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link text-white" href="/auth/logout">Выйти</a>
-                </li>
-              {{/if}}
-            {{else}}
-              <li class="nav-item">
-                <a class="nav-link text-white" href="/">Главная</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-white" href="/tours">Туры</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link text-white" href="/auth/login">Войти</a>
-              </li>
-            {{/if}}
-          </ul>
-        </div>
-      </div>
-    </nav>
-    <div class="container-fluid py-2" style="background-color: #28a745;">
-      <p class="text-center text-white mb-0">Откройте для себя уникальные места для отдыха</p>
-    </div>
-  </header>
+  
 
   <!-- Основной контент -->
   <main>
@@ -159,16 +95,6 @@
     </div>
   </div>
 
-  <!-- Футер -->
-  <footer class="bg-dark text-white text-center py-3 mt-5">
-    <p class="mb-1">© 2025 Краснодар Тур. Все права защищены.</p>
-    <p>
-      <a href="#" class="text-white text-decoration-none mx-2">О нас</a>
-      <a href="#" class="text-white text-decoration-none mx-2">Контакты</a>
-      <a href="#" class="text-white text-decoration-none mx-2">Условия</a>
-    </p>
-  </footer>
-
   <!-- Bootstrap JS и Popper.js -->
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
@@ -182,7 +108,5 @@
   <script src="/js/maps.js"></script>
   <!-- Chat JS -->
   <script defer src="/js/chat.js"></script>
-  <!-- Payment JS -->
-  <script src="/js/payment.js"></script>
 </body>
 </html>

@@ -79,6 +79,9 @@ hbs.handlebars.registerHelper('range', function (start, end) {
 hbs.handlebars.registerHelper('formatDate', function (date) {
   return new Date(date).toLocaleDateString('ru-RU');
 });
+hbs.handlebars.registerHelper('formatPrice', function (price) {
+  return Number(price).toLocaleString('ru-RU'); // Форматирует цену как 123 456
+});
 hbs.handlebars.registerHelper('join', function (array, separator) {
   console.log('Join helper called with:', array, separator);
   return array ? array.join(separator) : '';
@@ -111,6 +114,22 @@ hbs.handlebars.registerHelper('or', function (...args) {
 hbs.handlebars.registerHelper('not', function(value) {
   return !value;
 });
+hbs.handlebars.registerHelper('isObject', function (value) {
+  return value && typeof value === 'object' && (value.name || value.rating || value.roomTypes);
+});
+hbs.handlebars.registerHelper('json', function (value) {
+  return JSON.stringify(value);
+});
+hbs.handlebars.registerHelper('get', function (array, index) {
+  return array && array.length > index ? array[index] : null;
+});
+hbs.handlebars.registerHelper('toJson', function (obj) {
+  return JSON.stringify(obj);
+});
+hbs.handlebars.registerHelper('default', function (value, defaultValue) {
+  return value !== undefined && value !== null && !isNaN(value) ? value : defaultValue;
+});
+
 
 console.log('Handlebars helpers registered: eq, gt, lt, add, subtract, range, formatDate, join, includes, contains, truncate, and, or, not');
 
@@ -156,6 +175,7 @@ app.use((req, res, next) => {
     '/community/posts/:id/like',
     '/community/posts/:id/comment',
     '/bookings',
+    '/tours/:id/availability',
   ];
   // Проверка статических путей
   if (csrfExemptPaths.includes(req.path) && req.method === 'POST') {

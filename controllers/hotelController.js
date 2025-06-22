@@ -66,7 +66,8 @@ exports.getHotelById = async (req, res) => {
     const hasActiveBooking = req.user
       ? await Booking.exists({
           userId: req.user._id,
-          status: { $in: ['pending', 'confirmed'] }
+          status: { $in: ['pending', 'confirmed'] },
+          endDate: { $gt: new Date() }
         })
       : false;
     const roomTypeLabels = {

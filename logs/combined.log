@@ -1,0 +1,1 @@
+{"level":"error","message":"Hotel authentication error: Operation `hotels.findOne()` buffering timed out after 10000ms","timestamp":"2025-06-09T13:58:04.426Z"}

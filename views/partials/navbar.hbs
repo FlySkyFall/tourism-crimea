@@ -1,25 +1,57 @@
-<nav class="bg-gray-800 text-white">
-     <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-       <a href="/" class="text-xl font-bold">Туры Краснодарского края</a>
-       <div class="space-x-4">
-         <a href="/" class="text-gray-700 hover:text-blue-600">Главная</a>
-         <a href="/tours" class="hover:text-blue-300">Туры</a>
-         <a href="/news" class="hover:text-blue-300">Новости</a>
-         <a href="/hotels" class="hover:text-blue-300">Отели</a>
-         <a href="/attractions" class="hover:text-blue-300">Достопримечательности</a>
-         <a href="/travel" class="hover:text-blue-300">Куда съездить</a>
-         {{#if user}}
-           {{#if (eq user.role 'admin')}}
-             <a href="/admin" class="hover:text-blue-300">Админ-панель</a>
-           {{/if}}
-           <a href="/community" class="hover:text-blue-300">Сообщество</a>
-           <a href="/bookings" class="hover:text-blue-300">Мои бронирования</a>
-           <a href="/profile" class="hover:text-blue-300">Профиль</a>
-           <a href="/auth/logout" class="hover:text-blue-300">Выйти</a>
-         {{else}}
-           <a href="/auth/login" class="hover:text-blue-300">Вход</a>
-           <a href="/auth/register" class="hover:text-blue-300">Регистрация</a>
-         {{/if}}
-       </div>
-     </div>
-   </nav>
+<nav class="navbar">
+  <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+    <a href="/" class="text-xl font-bold text-[var(--text)]">Туры Республики Крым</a>
+    <div class="hidden md:flex space-x-2">
+      <a href="/" class="nav-link">Главная</a>
+      <a href="/tours" class="nav-link">Туры</a>
+      <a href="/news" class="nav-link">Новости</a>
+      <a href="/hotels" class="nav-link">Отели</a>
+      <a href="/attractions" class="nav-link">Достопримечательности</a>
+      <a href="/travel" class="nav-link">Куда съездить</a>
+      {{#if user}}
+        {{#if (eq user.role 'admin')}}
+          <a href="/admin" class="nav-link">Админ-панель</a>
+        {{/if}}
+        <a href="/community" class="nav-link">Сообщество</a>
+        <a href="/bookings" class="nav-link">Мои бронирования</a>
+        <a href="/profile" class="nav-link">Профиль</a>
+        <a href="/auth/logout" class="nav-link">Выйти</a>
+      {{else}}
+        <a href="/auth/login" class="nav-link">Вход</a>
+        <a href="/auth/register" class="nav-link">Регистрация</a>
+      {{/if}}
+    </div>
+    <button class="md:hidden mobile-menu-toggle">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+    <div class="mobile-menu fixed top-0 right-0 w-3/4 h-full bg-white shadow-lg transform translate-x-full md:hidden">
+      <button class="mobile-menu-close p-4">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <div class="flex flex-col p-4 space-y-4">
+        <a href="/" class="nav-link">Главная</a>
+        <a href="/tours" class="nav-link">Туры</a>
+        <a href="/news" class="nav-link">Новости</a>
+        <a href="/hotels" class="nav-link">Отели</a>
+        <a href="/attractions" class="nav-link">Достопримечательности</a>
+        <a href="/travel" class="nav-link">Куда съездить</a>
+        {{#if user}}
+          {{#if (eq user.role 'admin')}}
+            <a href="/admin" class="nav-link">Админ-панель</a>
+          {{/if}}
+          <a href="/community" class="nav-link">Сообщество</a>
+          <a href="/bookings" class="nav-link">Мои бронирования</a>
+          <a href="/profile" class="nav-link">Профиль</a>
+          <a href="/auth/logout" class="nav-link">Выйти</a>
+        {{else}}
+          <a href="/auth/login" class="nav-link">Вход</a>
+          <a href="/auth/register" class="nav-link">Регистрация</a>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+</nav>

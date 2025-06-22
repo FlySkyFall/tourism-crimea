@@ -1,6 +1,18 @@
 /* Импорт шрифтов */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');
 
+/* Переменные для цветовой палитры */
+:root {
+  --primary: #F97316; /* Оранжевый для акцентов */
+  --primary-dark: #EA580C; /* Темный оранжевый для hover */
+  --secondary: #2DD4BF; /* Бирюзовый для активных состояний */
+  --secondary-dark: #26A69A; /* Темный бирюзовый */
+  --background: #FEFCE8; /* Кремовый фон */
+  --text: #1E3A8A; /* Темно-синий текст */
+  --gray: #D1D5DB; /* Серый для границ */
+  --white: #FFFFFF; /* Белый для карточек */
+}
+
 /* Базовые стили и сброс */
 * {
   margin: 0;
@@ -10,8 +22,8 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  background-color: #FEFCE8; /* Кремовый фон */
-  color: #1E3A8A; /* Тёмно-синий текст */
+  background-color: var(--background);
+  color: var(--text);
   line-height: 1.6;
   font-size: 16px;
   letter-spacing: -0.01em;
@@ -20,7 +32,7 @@ body {
 /* Заголовки */
 h1, h2, h3, h4, h5, h6 {
   font-family: 'Playfair Display', serif;
-  color: #1E3A8A;
+  color: var(--text);
 }
 
 h1 {
@@ -45,7 +57,7 @@ h3 {
 
 /* Навигация */
 .navbar {
-  background-color: #FFFFFF;
+  background-color: var(--white);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
@@ -57,14 +69,19 @@ h3 {
   background-color: rgba(255, 255, 255, 0.95);
 }
 
-.navbar a {
-  color: #1E3A8A;
+/* Стили ссылок навигации */
+.navbar a.nav-link {
+  color: var(--text);
   font-weight: 500;
-  transition: color 0.2s ease, transform 0.2s ease;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  display: block;
+  transition: color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
 }
 
-.navbar a:hover {
-  color: #F97316; /* Оранжевый при наведении */
+.navbar a.nav-link:hover {
+  color: var(--primary);
+  background-color: rgba(249, 115, 22, 0.1);
   transform: translateY(-2px);
 }
 
@@ -78,9 +95,15 @@ h3 {
   transform: translateX(0);
 }
 
+.mobile-menu-toggle, .mobile-menu-close {
+  color: var(--text);
+  min-width: 44px;
+  min-height: 44px;
+}
+
 /* Карточки (туры, отели, достопримечательности, рестораны, посты, новости) */
 .tour-card, .place-card, .hotel-card, .post, .news-card {
-  background-color: #FFFFFF;
+  background-color: var(--white);
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -111,59 +134,116 @@ h3 {
 
 /* Кнопки */
 button, .btn, a.bg-blue-600, a.bg-blue-700 {
-  background-color: #F97316;
-  color: #FFFFFF;
+  background-color: var(--primary);
+  color: var(--white);
   padding: 0.75rem 1.5rem;
   border-radius: 8px;
   font-weight: 500;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  min-height: 44px;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 button:hover, .btn:hover, a.bg-blue-600:hover, a.bg-blue-700:hover {
-  background-color: #EA580C;
+  background-color: var(--primary-dark);
   transform: translateY(-2px);
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
 }
 
 button:disabled {
-  background-color: #D1D5DB;
+  background-color: var(--gray);
   cursor: not-allowed;
 }
 
 /* Фильтры */
-.filter-btn, select, input[type="text"], input[type="number"], input[type="date"] {
-  border: 1px solid #D1D5DB;
+.filter-btn {
+  border: 1px solid var(--gray);
   border-radius: 8px;
-  padding: 0.5rem 1rem;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  padding: 0.75rem 1rem;
+  background-color: var(--white);
+  color: var(--text);
+  min-height: 44px;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
+/* Активное состояние кнопки фильтра */
 .filter-btn.bg-blue-600 {
-  background-color: #2DD4BF !important; /* Бирюзовый вместо синего */
-  color: #FFFFFF;
+  background-color: var(--secondary) !important;
+  color: var(--white) !important;
+  border-color: var(--secondary-dark);
+  box-shadow: 0 2px 6px rgba(45, 212, 191, 0.3);
+  transform: translateY(-1px);
 }
 
 .filter-btn:hover {
-  border-color: #F97316;
+  background-color: var(--primary);
+  color: var(--white);
+  border-color: var(--primary-dark);
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Поля ввода и селекты */
+select, input[type="text"], input[type="number"], input[type="date"] {
+  border: 1px solid var(--gray);
+  border-radius: 8px;
+  padding: 0.75rem;
+  background-color: var(--white);
+  min-height: 44px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+select:focus, input[type="text"]:focus, input[type="number"]:focus, input[type="date"]:focus {
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  outline: none;
 }
 
 /* Пагинация */
 .pagination-btn {
-  background-color: #FFFFFF;
-  border: 1px solid #D1D5DB;
+  background-color: var(--white);
+  border: 1px solid var(--gray);
   border-radius: 8px;
   padding: 0.5rem 1rem;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  color: var(--text);
+  min-height: 44px;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .pagination-btn.bg-blue-600 {
-  background-color: #2DD4BF !important;
-  color: #FFFFFF;
+  background-color: var(--secondary) !important;
+  color: var(--white) !important;
+  border-color: var(--secondary-dark);
+  box-shadow: 0 2px 6px rgba(45, 212, 191, 0.3);
+  transform: translateY(-1px);
 }
 
-.pagination-btn:hover {
-  background-color: #F97316;
-  color: #FFFFFF;
+.pagination-btn:hover:not(.opacity-50) {
+  background-color: var(--primary);
+  color: var(--white);
+  border-color: var(--primary-dark);
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Неактивные кнопки пагинации */
+.pagination-btn.opacity-50 {
+  background-color: var(--gray);
+  color: #6B7280;
+  cursor: not-allowed;
+}
+
+/* Форма фильтров на странице туров */
+#tour-filter-form {
+  background-color: var(--white);
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Hero-секция на главной */
+section.bg-cover {
+  height: 70vh;
+  min-height: 300px;
 }
 
 /* Чат-виджет */
@@ -172,13 +252,13 @@ button:disabled {
   bottom: 1rem;
   right: 1rem;
   width: 320px;
-  background-color: #FFFFFF;
+  background-color: var(--white);
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: transform 0.3s ease, opacity 0.3s ease;
   transform: translateY(100%);
   opacity: 0;
-  display: none; /* Совместимость с chat.js */
+  display: none;
 }
 
 #chat-widget[style*="display: flex"] {
@@ -199,7 +279,7 @@ button:disabled {
 }
 
 #chat-toggle {
-  background-color: #F97316;
+  background-color: var(--primary);
   border-radius: 50%;
   width: 48px;
   height: 48px;
@@ -211,12 +291,12 @@ button:disabled {
 
 #chat-toggle:hover {
   transform: scale(1.1);
-  background-color: #EA580C;
+  background-color: var(--primary-dark);
 }
 
 .message.user-message {
-  background-color: #F97316;
-  color: #FFFFFF;
+  background-color: var(--primary);
+  color: var(--white);
   border-radius: 12px 12px 0 12px;
   padding: 0.5rem 1rem;
   margin: 0.5rem;
@@ -224,8 +304,8 @@ button:disabled {
 }
 
 .message.bot-message {
-  background-color: #2DD4BF;
-  color: #FFFFFF;
+  background-color: var(--secondary);
+  color: var(--white);
   border-radius: 12px 12px 12px 0;
   padding: 0.5rem 1rem;
   margin: 0.5rem;
@@ -234,8 +314,8 @@ button:disabled {
 
 /* Формы */
 input, textarea, select {
-  background-color: #FFFFFF;
-  border: 1px solid #D1D5DB;
+  background-color: var(--white);
+  border: 1px solid var(--gray);
   border-radius: 8px;
   padding: 0.75rem;
   width: 100%;
@@ -243,25 +323,25 @@ input, textarea, select {
 }
 
 input:focus, textarea:focus, select:focus {
-  border-color: #F97316;
+  border-color: var(--primary);
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
   outline: none;
 }
 
 /* Футер */
 footer {
-  background-color: #1E3A8A;
-  color: #FFFFFF;
+  background-color: var(--text);
+  color: var(--white);
   padding: 2rem 0;
 }
 
 footer a {
-  color: #2DD4BF;
+  color: var(--secondary);
   transition: color 0.2s ease;
 }
 
 footer a:hover {
-  color: #F97316;
+  color: var(--primary);
 }
 
 /* Ошибки */
@@ -271,18 +351,18 @@ footer a:hover {
 
 /* Календарь (FullCalendar) */
 .fc {
-  background-color: #FFFFFF;
+  background-color: var(--white);
   border-radius: 12px;
   padding: 1rem;
 }
 
 .fc-button {
-  background-color: #F97316 !important;
+  background-color: var(--primary) !important;
   border: none !important;
 }
 
 .fc-button:hover {
-  background-color: #EA580C !important;
+  background-color: var(--primary-dark) !important;
 }
 
 /* Карты Leaflet */
@@ -298,12 +378,12 @@ footer a:hover {
 }
 
 .leaflet-popup-content a {
-  color: #F97316;
+  color: var(--primary);
   font-weight: 500;
 }
 
 .leaflet-popup-content a:hover {
-  color: #EA580C;
+  color: var(--primary-dark);
 }
 
 /* Новости */
@@ -330,28 +410,129 @@ footer a:hover {
   h2 {
     font-size: 1.75rem;
   }
+  h3 {
+    font-size: 1.25rem;
+  }
+  /* Навигация */
   .navbar .mobile-menu {
     position: fixed;
     top: 0;
     right: 0;
     width: 75%;
+    max-width: 300px;
     height: 100%;
-    background-color: #FFFFFF;
+    background-color: var(--white);
     box-shadow: -2px 0 4px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
   }
-  .tour-card, .place-card, .hotel-card, .post, .news-card {
+  .navbar a.nav-link {
+    font-size: 1.1rem;
+    padding: 1rem;
+  }
+  /* Сетки туров и регионов */
+  .tours-grid, .tours-list, .grid-cols-1.md\\:grid-cols-3 {
+    grid-template-columns: 1fr;
+  }
+  .tour-card, .region-card {
     width: 100%;
+    max-width: 100%;
   }
+  /* Фильтры на главной */
+  .filter-btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+  }
+  /* Форма фильтров на странице туров */
+  #tour-filter-form .grid {
+    grid-template-columns: 1fr;
+  }
+  #tour-filter-form div {
+    margin-bottom: 1rem;
+  }
+  select, input[type="text"], input[type="number"], input[type="date"] {
+    font-size: 1rem;
+  }
+  /* Пагинация */
+  .pagination {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .pagination-btn {
+    flex-grow: 1;
+    text-align: center;
+    font-size: 0.9rem;
+    padding: 0.5rem;
+  }
+  /* Hero-секция */
+  section.bg-cover {
+    height: 50vh;
+    min-height: 250px;
+  }
+  section.bg-cover h1 {
+    font-size: 1.75rem;
+  }
+  section.bg-cover p {
+    font-size: 1rem;
+  }
+  /* Чат-виджет */
   #chat-widget {
     width: 100%;
     bottom: 0;
     right: 0;
     border-radius: 12px 12px 0 0;
   }
+  /* Карты */
   #tourMap, #regionMap, #attractionMap, #hotelMap {
     height: 300px;
   }
+  /* Новости */
   #news-grid {
     grid-template-columns: 1fr;
   }
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 0 0.5rem;
+  }
+  h1 {
+    font-size: 1.75rem;
+  }
+  h2 {
+    font-size: 1.5rem;
+  }
+  .filter-btn, .pagination-btn {
+    font-size: 0.875rem;
+  }
+  .tour-card img, .region-card img {
+    height: 160px;
+  }
+}
+/* Стили для горящих туров */
+.hot-deal {
+  border: 2px solid red;
+}
+.hot-deal-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: red;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 0.8rem;
+}
+
+/* Дополнительные стили для улучшения UX */
+img {
+  transition: transform 0.3s ease;
+}
+
+img:hover {
+  transform: scale(1.05);
+}
+
+select[multiple] {
+  height: auto;
 }

@@ -33,7 +33,8 @@ const hotelSchema = new mongoose.Schema({
     type: String,
     default: () => crypto.randomBytes(32).toString('hex'),
     select: false
-  }
+  },
+  basePrice: { type: Number, required: true, default: 5000 }
 });
 
 hotelSchema.virtual('reviewsCount').get(function () {

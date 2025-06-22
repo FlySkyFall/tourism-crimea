@@ -25,6 +25,7 @@ const bookingSchema = new mongoose.Schema({
       return (this.tourId && ['hotel', 'sanatorium'].includes(this.tourId.accommodation?.type)) || !!this.hotelId; 
     }
   },
+  totalPrice: { type: Number, min: 0 }, // Новое поле для итоговой цены
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

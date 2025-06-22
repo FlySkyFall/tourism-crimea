@@ -4,17 +4,19 @@ const Restaurant = require('../models/Restaurant');
 
 exports.getTravelPage = async (req, res) => {
   try {
+    const limit = 10;
+
     const attractions = await Attraction.find({})
-      .sort({ rating: -1 }) // Сортировка по убыванию рейтинга
-      .limit(10)
+      .sort({ rating: -1 })
+      .limit(limit)
       .lean();
     const restaurants = await Restaurant.find({})
       .sort({ rating: -1 })
-      .limit(10)
+      .limit(limit)
       .lean();
     const hotels = await Hotel.find({})
       .sort({ rating: -1 })
-      .limit(10)
+      .limit(limit)
       .lean();
 
     console.log('Travel page data:', {

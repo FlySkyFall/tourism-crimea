@@ -18,7 +18,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label for="attraction-search" class="block text-gray-700 mb-2">Поиск:</label>
-            <input type="text" id="attraction-search" name="search" value="{{currentSearch}}" class="w-full border rounded-lg px-4 py-2" placeholder="Название или описание">
+            <input type="text" id="attraction-search" name="search" value="{{#if currentSearch}}{{currentSearch}}{{else}}{{/if}}" class="w-full border rounded-lg px-4 py-2" placeholder="Название или описание">
           </div>
           <div>
             <label for="region-filter" class="block text-gray-700 mb-2">Регион:</label>
@@ -61,7 +61,7 @@
       <div class="attractions-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {{#each attractions}}
           <div class="bg-white rounded-lg shadow-md overflow-hidden">
-            <img src="{{this.images.[0]}}" alt="{{this.name}}" class="w-full h-48 object-cover">
+            <img src="https://static.life.ru/publications/2022/8/9/1188636710337.2986.jpg" alt="{{this.name}}" class="w-full h-48 object-cover">
             <div class="p-4">
               <h3 class="text-xl font-semibold mb-2">{{this.name}}</h3>
               <p class="text-gray-600 mb-2">{{truncate this.description 100}}</p>
@@ -81,10 +81,22 @@
       </div>
 
       {{#if totalPages}}
-        <div class="mt-8 flex justify-center">
-          <nav class="pagination inline-flex"></nav>
+        <div class="mt-8 flex justify-between items-center">
+          <p class="text-gray-600">Показано {{attractionsOnPage}} из {{totalAttractions}} достопримечательностей</p>
+          <div class="flex space-x-2" id="pagination">
+            {{#if (gt currentPage 1)}}
+              <a href="?page={{subtract currentPage 1}}&search={{currentSearch}}&region={{currentRegion}}&category={{currentCategory}}" class="pagination-btn {{eq currentPage 1 'opacity-50' ''}}">Назад</a>
+            {{else}}
+              <span class="pagination-btn opacity-50 cursor-not-allowed">Назад</span>
+            {{/if}}
+            <span class="px-4 py-2 text-gray-600">Страница {{currentPage}} из {{totalPages}}</span>
+            {{#if (lt currentPage totalPages)}}
+              <a href="?page={{add currentPage 1}}&search={{currentSearch}}&region={{currentRegion}}&category={{currentCategory}}" class="pagination-btn {{eq currentPage totalPages 'opacity-50' ''}}">Вперёд</a>
+            {{else}}
+              <span class="pagination-btn opacity-50 cursor-not-allowed">Вперёд</span>
+            {{/if}}
+          </div>
         </div>
-        <p class="mt-4 text-center text-gray-600">Страница: {{currentPage}} из {{totalPages}} (Достопримечательностей на странице: {{attractionsOnPage}}, Всего достопримечательностей: {{totalAttractions}})</p>
       {{/if}}
     </div>
   </section>

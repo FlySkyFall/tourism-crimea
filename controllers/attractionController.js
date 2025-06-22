@@ -9,7 +9,8 @@ exports.getAttractions = async (req, res) => {
     const region = req.query.region ? req.query.region.trim() : '';
     const category = req.query.category ? req.query.category.trim() : '';
 
-    console.log('Attraction filter params:', { page, search, region, category }); // Логирование параметров
+    console.log('Raw Attraction filter params from req.query:', req.query); // Логирование всех параметров
+    console.log('Cleaned Attraction filter params:', { page, search, region, category }); // Логирование очищенных данных
 
     const query = {};
     if (search) {
@@ -33,7 +34,11 @@ exports.getAttractions = async (req, res) => {
     const totalAttractions = await Attraction.countDocuments(query);
     const totalPages = Math.ceil(totalAttractions / limit);
 
-    console.log('Attractions found:', attractions.length, 'Total:', totalAttractions); // Логирование результатов
+    // Детальная отладка содержимого images
+    attractions.forEach((attraction, index) => {
+      console.log(`Attraction ${index + 1} - Name: ${attraction.name}, Images: ${JSON.stringify(attraction.images)}, Description: ${attraction.description || 'undefined'}`);
+    });
+    console.log('Attractions found:', attractions.length, 'Total:', totalAttractions);
 
     res.render('attractions/index', {
       attractions,
@@ -60,12 +65,14 @@ exports.getAttractions = async (req, res) => {
     });
   }
 };
+
 exports.getAttractionById = async (req, res) => {
   try {
     const attraction = await Attraction.findById(req.params.id).lean();
     if (!attraction) {
       return res.status(404).render('error', { message: 'Достопримечательность не найдена' });
     }
+    console.log(`Attraction ${attraction.name} - Images: ${JSON.stringify(attraction.images)}`);
     res.render('attractions/attraction', {
       attraction,
       user: req.user || null,

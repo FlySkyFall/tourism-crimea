@@ -26,8 +26,7 @@
               <h3 class="text-xl font-semibold mb-2">{{this.name}}</h3>
               <p class="text-gray-600 mb-2">{{truncate this.description 100}}</p>
               <p class="text-gray-600 mb-2"><strong>Регион:</strong> {{this.location.region}}</p>
-              <p class="text-gray-600 mb-4"><strong>Рейтинг:</strong> {{this.rating}} ({{this.reviewsCount}} отзывов)</p>
-              <a href="/travel/place/{{this._id}}" class="text-blue-600 hover:underline">Подробнее</a>
+              <a href="/attractions/{{this._id}}" class="text-blue-600 hover:underline">Подробнее</a>
             </div>
           </div>
         {{else}}
@@ -45,7 +44,7 @@
               <h3 class="text-xl font-semibold mb-2">{{this.name}}</h3>
               <p class="text-gray-600 mb-2">{{truncate this.description 100}}</p>
               <p class="text-gray-600 mb-2"><strong>Регион:</strong> {{this.location.region}}</p>
-              <p class="text-gray-600 mb-4"><strong>Рейтинг:</strong> {{this.rating}} ({{this.reviewsCount}} отзывов)</p>
+              <p class="text-gray-600 mb-4"><strong>Рейтинг:</strong> {{this.rating}}</p>
               <a href="/travel/place/{{this._id}}" class="text-blue-600 hover:underline">Подробнее</a>
             </div>
           </div>
@@ -64,8 +63,8 @@
               <h3 class="text-xl font-semibold mb-2">{{this.name}}</h3>
               <p class="text-gray-600 mb-2">{{truncate this.description 100}}</p>
               <p class="text-gray-600 mb-2"><strong>Регион:</strong> {{this.location.region}}</p>
-              <p class="text-gray-600 mb-4"><strong>Рейтинг:</strong> {{this.rating}} ({{this.reviewsCount}} отзывов)</p>
-              <a href="/travel/place/{{this._id}}" class="text-blue-600 hover:underline">Подробнее</a>
+              <p class="text-gray-600 mb-4"><strong>Рейтинг:</strong> {{this.rating}}</p>
+              <a href="/hotels/{{this._id}}" class="text-blue-600 hover:underline">Подробнее</a>
             </div>
           </div>
         {{else}}

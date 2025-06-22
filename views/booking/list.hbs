@@ -33,9 +33,18 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           {{#each bookings}}
             <div class="bg-white rounded-lg shadow-md p-6">
-              <h3 class="text-xl font-semibold mb-2">{{this.tourId.title}}</h3>
+              {{#if this.tourId}}
+                <h3 class="text-xl font-semibold mb-2">{{this.tourId.title}}</h3>
+              {{else if this.hotelId}}
+                <h3 class="text-xl font-semibold mb-2">{{this.hotelId.name}}</h3>
+              {{else}}
+                <h3 class="text-xl font-semibold mb-2">Неизвестный объект бронирования</h3>
+              {{/if}}
               <p class="text-gray-600 mb-2">Дата бронирования: {{formatDate this.bookingDate}}</p>
-              <p class="text-gray-600 mb-2">Дата тура: {{formatDate this.tourDate}}</p>
+              <p class="text-gray-600 mb-2">Дата начала: {{formatDate this.startDate}}</p>
+              {{#if this.endDate}}
+                <p class="text-gray-600 mb-2">Дата окончания: {{formatDate this.endDate}}</p>
+              {{/if}}
               <p class="text-gray-600 mb-2">Статус: 
                 {{#if (eq this.status 'pending')}}Ожидает подтверждения
                 {{else if (eq this.status 'confirmed')}}Подтверждено
@@ -47,14 +56,15 @@
                 {{else}}Ошибка оплаты{{/if}}
               </p>
               <p class="text-gray-600 mb-2">Участников: {{this.participants}}</p>
-              {{#if (and this.roomType (or (eq this.tourId.accommodation.type 'hotel') (eq this.tourId.accommodation.type 'sanatorium')))}}
-                <p class="text-gray-600 mb-4">Тип номера: 
+              {{#if this.roomType}}
+                <p class="text-gray-600 mb-2">Тип номера: 
                   {{#if (eq this.roomType 'standard')}}Обычный
                   {{else if (eq this.roomType 'standardWithAC')}}Обычный с кондиционером
                   {{else}}Люкс{{/if}}
                 </p>
               {{/if}}
-              {{#if (or (eq this.paymentStatus 'pending') (eq this.paymentStatus 'failed'))}}
+              <p class="text-gray-600 mb-4">Итоговая цена: {{formatPrice (default this.totalPrice 0)}} ₽</p>
+              {{#if (and (or (eq this.paymentStatus 'pending') (eq this.paymentStatus 'failed')) (not (eq this.status 'cancelled')))}}
                 <button 
                   onclick="openPaymentModal('{{this._id}}')"
                   class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mb-2">

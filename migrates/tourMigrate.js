@@ -1,31 +1,33 @@
 const mongoose = require('mongoose');
 const Tour = require('../models/Tour');
 
+mongoose.connect('mongodb://localhost:27017/tourism-krasnodar', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
 async function migrateTours() {
   try {
-    await mongoose.connect('mongodb://localhost/tourism-krasnodar', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-    console.log('Connected to MongoDB');
-
-    const tours = await Tour.find({});
+    console.log('Starting migration...');
+    const tours = await Tour.find();
     for (const tour of tours) {
-      const updates = {
-        $unset: { difficultyLevel: '' },
-      };
-      if (['passive', 'health'].includes(tour.type)) {
-        updates.$set = { hotelCapacity: tour.maxGroupSize + Math.floor(Math.random() * 50) };
+      if (!tour.route) {
+        if (tour.type === 'excursion') {
+          // Для экскурсионных туров устанавливаем минимальный маршрут (координаты из location)
+          tour.route = [{ lat: tour.location.coordinates.lat, lng: tour.location.coordinates.lng }];
+        } else {
+          // Для других типов оставляем пустой массив
+          tour.route = [];
+        }
+        await tour.save({ validateBeforeSave: false }); // Отключаем валидацию при сохранении
+        console.log(`Updated tour ${tour._id} with route: ${JSON.stringify(tour.route)}`);
       }
-      await Tour.updateOne({ _id: tour._id }, updates);
-      console.log(`Updated tour ${tour.title}`);
     }
-    console.log('Migration completed');
+    console.log('Migration completed successfully!');
+    mongoose.connection.close();
   } catch (error) {
-    console.error('Migration error:', error);
-  } finally {
-    await mongoose.disconnect();
-    console.log('Disconnected from MongoDB');
+    console.error('Migration failed:', error);
+    mongoose.connection.close();
   }
 }
 

@@ -4,15 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content="{{csrfToken}}">
-  <title>{{tour.title}} - Краснодарский край</title>
+  <title>{{#if tour.title}}{{tour.title}}{{else}}Тур{{/if}} - Краснодарский край</title>
   <script src="https://unpkg.com/@popperjs/core@2"></script>
   <script src="https://unpkg.com/tippy.js@6"></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="/css/style.css">
   <style>
     #tourMap { height: 400px; width: 100%; }
+    #routeMap { height: 400px; width: 100%; display: block; }
     #calendar { display: block; min-height: 400px; width: 100%; }
   </style>
 </head>
@@ -21,207 +23,291 @@
 
   <section class="py-12 bg-white">
     <div class="container mx-auto px-4">
-      <h1 class="text-3xl font-bold mb-6">{{tour.title}}</h1>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div>
-          <img src="{{tour.images.[0]}}" alt="{{tour.title}}" class="w-full h-96 object-cover rounded-lg">
-        </div>
-        <div>
-          <p class="text-gray-600 mb-4">{{tour.description}}</p>
-          <p class="text-blue-600 font-bold text-xl mb-4">{{tour.price}} ₽</p>
-          <p class="mb-2"><strong>Тип:</strong> 
-            {{#if (eq tour.type 'active')}}Активный
-            {{else if (eq tour.type 'excursion')}}Экскурсионный
-            {{else if (eq tour.type 'camping')}}Кемпинг
-            {{else if (eq tour.type 'health')}}Оздоровительный
-            {{else}}Пассивный{{/if}}
-          </p>
-          <p class="mb-2"><strong>Продолжительность:</strong> {{tour.durationDays}} дней</p>
-          <p class="mb-2"><strong>Регион:</strong> {{tour.location.region}}</p>
-          <p class="mb-2"><strong>Размер группы:</strong> {{tour.minGroupSize}}-{{tour.maxGroupSize}} человек</p>
-          {{#if (or (eq tour.type 'passive') (eq tour.type 'health'))}}
-            <p class="mb-2"><strong>Вместимость отеля:</strong> {{tour.hotelCapacity}} человек</p>
-          {{/if}}
-          <p class="mb-4"><strong>Рейтинг:</strong> {{tour.rating}} ({{tour.reviewsCount}} отзывов)</p>
-        </div>
-      </div>
-
-      <div class="mt-8">
-        <h2 class="text-2xl font-bold mb-4">Местоположение</h2>
-        <div id="tourMap" class="rounded-lg"></div>
-      </div>
-
-      <div class="mt-8">
-        <h2 class="text-2xl font-bold mb-4">Календарь доступности</h2>
-        <div id="calendar" class="bg-white p-4 rounded-lg"></div>
-      </div>
-
-      {{#if user}}
-        {{#if hasActiveBooking}}
-          <p class="mt-4 text-red-600">У вас уже есть активное бронирование</p>
-        {{else}}
-          <div class="mt-8 bg-gray-100 p-6 rounded-lg">
-            <h3 class="text-xl font-semibold mb-4">Забронировать тур</h3>
-            <form id="booking-form">
-              <input type="hidden" name="tourId" value="{{tour._id}}">
-              <input type="hidden" name="_csrf" value="{{csrfToken}}">
-              <div class="mb-4">
-                <label for="tourDate" class="block text-gray-700 mb-2">Дата тура:</label>
-                {{#if (or (eq tour.type 'active') (eq tour.type 'camping') (eq tour.type 'excursion'))}}
-                  <select id="tourDate" name="tourDate" class="w-full border rounded-lg px-4 py-2" required>
-                    <option value="">Выберите дату</option>
-                  </select>
-                {{else}}
-                  <input type="date" id="tourDate" name="tourDate" class="w-full border rounded-lg px-4 py-2" min="{{seasonStart}}" max="{{seasonEnd}}" required>
+      <div class="relative {{#if tour.isHotDeal}}hot-deal{{/if}}">
+        {{#if tour.isHotDeal}}
+          <span class="hot-deal-badge">🔥 Горящий тур!</span>
+        {{/if}}
+        <h1 class="text-3xl font-bold mb-6">{{#if tour.title}}{{tour.title}}{{else}}Без названия{{/if}}</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            {{#if tour.images.length}}
+              <img src="{{get tour.images 0}}" alt="{{tour.title}}" class="w-full h-96 object-cover rounded-lg">
+            {{else}}
+              <div class="w-full h-96 bg-gray-200 rounded-lg flex items-center justify-center">
+                <p class="text-gray-500">Изображение отсутствует</p>
+              </div>
+            {{/if}}
+            <p id="tour-price" class="text-blue-600 font-bold text-xl mt-2">
+              {{#if tour.price}}
+                {{formatPrice tour.price}} ₽ за человека
+                {{#if tour.discounts.groupDiscount.enabled}}
+                  <span class="text-green-600 block text-sm">Скидка {{tour.discounts.groupDiscount.percentage}}% за группу от {{tour.discounts.groupDiscount.minParticipants}} чел.</span>
                 {{/if}}
-              </div>
-              <div class="mb-4">
-                <label for="participants" class="block text-gray-700 mb-2">Количество участников:</label>
-                <input type="number" id="participants" name="participants" min="1" max="{{tour.maxGroupSize}}" class="w-full border rounded-lg px-4 py-2" required>
-              </div>
-              {{#if (or (eq tour.accommodation.type 'hotel') (eq tour.accommodation.type 'sanatorium'))}}
+                {{#if tour.discounts.seasonalDiscount.enabled}}
+                  <span class="text-green-600 block text-sm">Сезонная скидка {{tour.discounts.seasonalDiscount.percentage}}% до {{formatDate tour.discounts.seasonalDiscount.endDate}}</span>
+                {{/if}}
+                {{#if tour.isHotDeal}}
+                  <span class="text-green-600 block text-sm">Скидка горящего тура {{tour.discounts.hotDealDiscount.percentage}}%</span>
+                {{/if}}
+              {{else}}
+                Цена не указана
+              {{/if}}
+            </p>
+          </div>
+          <div>
+            <p class="text-gray-600 mb-4">{{#if tour.description}}{{tour.description}}{{else}}Описание отсутствует{{/if}}</p>
+            <p class="mb-2"><strong>Тип:</strong> 
+              {{#if tour.type}}
+                {{#if (eq tour.type 'active')}}Активный
+                {{else if (eq tour.type 'excursion')}}Экскурсионный
+                {{else if (eq tour.type 'camping')}}Кемпинг
+                {{else if (eq tour.type 'health')}}Оздоровительный
+                {{else}}Пассивный{{/if}}
+              {{else}}
+                Не указан
+              {{/if}}
+            </p>
+            <p class="mb-2"><strong>Продолжительность:</strong> {{#if tour.durationDays}}{{tour.durationDays}} дней{{else}}Не указана{{/if}}</p>
+            <p class="mb-2"><strong>Регион:</strong> {{#if tour.location.region}}{{tour.location.region}}{{else}}Не указан{{/if}}</p>
+            <p class="mb-2"><strong>Размер группы:</strong> {{#if tour.minGroupSize}}{{tour.minGroupSize}}-{{tour.maxGroupSize}} человек{{else}}Не указан{{/if}}</p>
+            {{#if (or (eq tour.type 'passive') (eq tour.type 'health'))}}
+              <p class="mb-2"><strong>Вместимость отеля:</strong> {{#if tour.hotelCapacity}}{{tour.hotelCapacity}} человек{{else}}Не указана{{/if}}</p>
+            {{/if}}
+            <p class="mb-4"><strong>Рейтинг:</strong> {{#if tour.rating}}{{tour.rating}} ({{tour.reviewsCount}} отзывов){{else}}Нет рейтинга{{/if}}</p>
+          </div>
+        </div>
+
+        <div class="mt-8">
+          <h2 class="text-2xl font-bold mb-4">Местоположение</h2>
+          <div id="tourMap" class="rounded-lg"></div> <!-- Убедимся, что карта всегда видна -->
+        </div>
+
+        {{#if (eq tour.type 'excursion')}}
+          {{#if tour.route}}
+            <div class="mt-8">
+              <h2 class="text-2xl font-bold mb-4">Маршрут</h2>
+              <div id="routeMap" class="rounded-lg"></div>
+            </div>
+          {{else}}
+            <div class="mt-8">
+              <p class="text-gray-600">Маршрут для этого тура не указан.</p>
+            </div>
+          {{/if}}
+        {{/if}}
+
+        <div class="mt-8">
+          <h2 class="text-2xl font-bold mb-4">Календарь доступности</h2>
+          <div id="calendar" class="bg-white p-4 rounded-lg"></div>
+        </div>
+
+        {{#if user}}
+          {{#if hasActiveBooking}}
+            <p class="mt-4 text-red-600">У вас уже есть активное бронирование</p>
+          {{else}}
+            <div class="mt-8 bg-gray-100 p-6 rounded-lg">
+              <h3 class="text-xl font-semibold mb-4">Забронировать тур</h3>
+              <form id="booking-form">
+                <input type="hidden" name="tourId" value="{{tour._id}}">
+                <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                <input type="hidden" id="totalPrice" name="totalPrice">
                 <div class="mb-4">
-                  <label for="roomType" class="block text-gray-700 mb-2">Тип номера:</label>
-                  {{#if (or (eq tour.accommodation.type 'hotel') (eq tour.accommodation.type 'sanatorium'))}}
-                    <div class="mb-4">
-                      <label for="roomType" class="block text-gray-700 mb-2">Тип номера:</label>
-                      <select id="roomType" name="roomType" class="w-full border rounded-lg px-4 py-2" required>
-                        <option value="">Выберите тип номера</option>
-                        {{#each tour.accommodation.hotel.roomTypes}}
-                          <option value="{{this}}">
-                            {{lookup ../roomTypeLabels this}}
-                          </option>
-                        {{/each}}
-                      </select>
-                    </div>
+                  <label for="tourDate" class="block text-gray-700 mb-2">Дата тура:</label>
+                  {{#if (or (eq tour.type 'active') (eq tour.type 'camping') (eq tour.type 'excursion'))}}
+                    <select id="tourDate" name="tourDate" class="w-full border rounded-lg px-4 py-2" required>
+                      <option value="">Выберите дату</option>
+                    </select>
+                  {{else}}
+                    <input type="date" id="tourDate" name="tourDate" class="w-full border rounded-lg px-4 py-2" min="{{seasonStart}}" max="{{seasonEnd}}" required>
                   {{/if}}
                 </div>
-              {{/if}}
-              <p id="booking-error" class="text-red-600 mb-4 hidden"></p>
-              <p id="booking-success" class="text-green-600 mb-4 hidden"></p>
-              <button type="submit" id="book-tour-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Забронировать</button>
-            </form>
-          </div>
-        {{/if}}
-      {{else}}
-        <p class="mt-4 text-gray-600">Войдите, чтобы забронировать тур.</p>
-      {{/if}}
-
-      <div class="mt-8">
-        <h2 class="text-2xl font-bold mb-4">Отзывы</h2>
-        {{#if error}}
-          <p class="text-red-600 mb-4">{{error}}</p>
-        {{/if}}
-        {{#if tour.reviews.length}}
-          <div class="space-y-4">
-            {{#each tour.reviews}}
-              <div class="bg-gray-100 p-4 rounded-lg">
-                <p class="text-gray-700 font-semibold">{{this.userId.username}}</p>
-                <p class="text-yellow-500">Оценка: {{this.rating}} / 5</p>
-                <p class="text-gray-600">{{this.comment}}</p>
-                <p class="text-gray-500 text-sm">{{formatDate this.createdAt}}</p>
-              </div>
-            {{/each}}
-          </div>
+                <div class="mb-4">
+                  <label for="participants" class="block text-gray-700 mb-2">Количество участников:</label>
+                  <input type="number" id="participants" name="participants" min="1" max="{{#if tour.maxGroupSize}}{{tour.maxGroupSize}}{{else}}10{{/if}}" class="w-full border rounded-lg px-4 py-2" required>
+                </div>
+                {{#if tour.accommodation}}
+                  {{#if tour.accommodation.type}}
+                    {{#if (or (eq tour.accommodation.type 'hotel') (eq tour.accommodation.type 'sanatorium'))}}
+                      {{#if tour.accommodation.hotel}}
+                        {{#if (isObject tour.accommodation.hotel)}}
+                          {{#if tour.accommodation.hotel.roomTypes}}
+                            <div class="mb-4">
+                              <label for="roomType" class="block text-gray-700 mb-2">Тип номера:</label>
+                              <select id="roomType" name="roomType" class="w-full border rounded-lg px-4 py-2" required>
+                                <option value="">Выберите тип номера</option>
+                                {{#each tour.accommodation.hotel.roomTypes}}
+                                  <option value="{{this}}">{{lookup ../roomTypeLabels this}}</option>
+                                {{/each}}
+                              </select>
+                            </div>
+                          {{/if}}
+                        {{/if}}
+                      {{/if}}
+                    {{/if}}
+                  {{/if}}
+                {{/if}}
+                <p id="total-price-display" class="text-lg font-semibold mb-4">Итоговая цена: 0 ₽</p>
+                <p id="booking-error" class="text-red-600 mb-4 hidden"></p>
+                <p id="booking-success" class="text-green-600 mb-4 hidden"></p>
+                <button type="submit" id="book-tour-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Забронировать</button>
+              </form>
+            </div>
+          {{/if}}
         {{else}}
-          <p class="text-gray-600">Отзывов пока нет.</p>
+          <p class="mt-4 text-gray-600">Войдите, чтобы забронировать тур.</p>
         {{/if}}
 
-        {{#if (and user (not hasReviewed))}}
-          <div class="mt-6 bg-gray-100 p-6 rounded-lg">
-            <h3 class="text-xl font-semibold mb-4">Оставить отзыв</h3>
-            <form action="/tours/{{tour._id}}/reviews" method="POST">
-              <input type="hidden" name="_csrf" value="{{csrfToken}}">
-              <div class="mb-4">
-                <label for="rating" class="block text-gray-700 mb-2">Оценка (1-5):</label>
-                <select name="rating" id="rating" class="w-full border rounded-lg px-4 py-2" required>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                </select>
-              </div>
-              <div class="mb-4">
-                <label for="comment" class="block text-gray-700 mb-2">Комментарий:</label>
-                <textarea name="comment" id="comment" class="w-full border rounded-lg px-4 py-2" rows="4" required></textarea>
-              </div>
-              <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Отправить отзыв</button>
-            </form>
-          </div>
-        {{else}}
-          <p class="mt-4 text-gray-600">Войдите, чтобы оставить отзыв.</p>
-        {{/if}}
-      </div>
+        <div class="mt-8">
+          <h2 class="text-2xl font-bold mb-4">Отзывы</h2>
+          {{#if error}}
+            <p class="text-red-600 mb-4">{{error}}</p>
+          {{/if}}
+          {{#if tour.reviews.length}}
+            <div class="space-y-4">
+              {{#each tour.reviews}}
+                <div class="bg-gray-100 p-4 rounded-lg">
+                  <p class="text-gray-700 font-semibold">{{this.userId.username}}</p>
+                  <p class="text-yellow-500">Оценка: {{this.rating}} / 5</p>
+                  <p class="text-gray-600">{{this.comment}}</p>
+                  <p class="text-gray-500 text-sm">{{formatDate this.createdAt}}</p>
+                </div>
+              {{/each}}
+            </div>
+          {{else}}
+            <p class="text-gray-600">Отзывов пока нет.</p>
+          {{/if}}
 
-      <div class="mt-8">
-        <h2 class="text-2xl font-bold mb-4">Подробности</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 class="text-xl font-semibold mb-2">Размещение</h3>
-            <p><strong>Тип:</strong> 
-              {{#if (eq tour.accommodation.type 'hotel')}}Отель
-              {{else if (eq tour.accommodation.type 'sanatorium')}}Санаторий
-              {{else if (eq tour.accommodation.type 'camping')}}Кемпинг
-              {{else if (eq tour.accommodation.type 'retreat')}}Ретрит
-              {{else}}Без размещения{{/if}}
-            </p>
-            {{#if tour.accommodation.hotel}}
-              <p><strong>Название:</strong> {{tour.accommodation.hotel.name}}</p>
-              <p><strong>Рейтинг:</strong> {{tour.accommodation.hotel.rating}}/5</p>
-              <p><strong>Удобства:</strong> 
-                {{#each tour.accommodation.hotel.amenities}}
-                  {{this}}{{#unless @last}}, {{/unless}}
-                {{else}}
-                  Нет удобств
-                {{/each}}
-              </p>
-              <p><strong>Типы номеров:</strong> 
-                {{#each tour.accommodation.hotel.roomTypes}}
-                  {{#if (eq this 'standard')}}Обычный
-                  {{else if (eq this 'standardWithAC')}}Обычный с кондиционером
-                  {{else}}Люкс{{/if}}{{#unless @last}}, {{/unless}}
-                {{else}}
-                  Нет информации
-                {{/each}}
-              </p>
-            {{else}}
-              <p>Информация об отеле отсутствует</p>
-            {{/if}}
-          </div>
-          <div>
-            <h3 class="text-xl font-semibold mb-2">Сезон</h3>
-            <p><strong>Начало:</strong> {{formatDate tour.season.start}}</p>
-            <p><strong>Конец:</strong> {{formatDate tour.season.end}}</p>
-          </div>
+          {{#if (and user (not hasReviewed))}}
+            <div class="mt-6 bg-gray-100 p-6 rounded-lg">
+              <h3 class="text-xl font-semibold mb-4">Оставить отзыв</h3>
+              <form action="/tours/{{tour._id}}/reviews" method="POST">
+                <input type="hidden" name="_csrf" value="{{csrfToken}}">
+                <div class="mb-4">
+                  <label for="rating" class="block text-gray-700 mb-2">Оценка (1-5):</label>
+                  <select name="rating" id="rating" class="w-full border rounded-lg px-4 py-2" required>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                  </select>
+                </div>
+                <div class="mb-4">
+                  <label for="comment" class="block text-gray-700 mb-2">Комментарий:</label>
+                  <textarea name="comment" id="comment" class="w-full border rounded-lg px-4 py-2" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded">Отправить отзыв</button>
+              </form>
+            </div>
+          {{else}}
+            <p class="mt-4 text-gray-600">Войдите, чтобы оставить отзыв.</p>
+          {{/if}}
         </div>
 
-        <h3 class="text-xl font-semibold mt-6 mb-2">Активности</h3>
-        <ul class="list-disc pl-6">
-          {{#each tour.activities}}
-            <li>{{this.name}} ({{this.durationHours}} ч, {{#if this.equipmentRequired}}требуется оборудование{{else}}без оборудования{{/if}})</li>
-          {{else}}
-            <p>Нет активностей</p>
-          {{/each}}
-        </ul>
+        <div class="mt-8">
+          <h2 class="text-2xl font-bold mb-4">Подробности</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Размещение</h3>
+              <p><strong>Тип:</strong> 
+                {{#if tour.accommodation}}
+                  {{#if tour.accommodation.type}}
+                    {{#if (eq tour.accommodation.type 'hotel')}}Отель
+                    {{else if (eq tour.accommodation.type 'sanatorium')}}Санаторий
+                    {{else if (eq tour.accommodation.type 'camping')}}Кемпинг
+                    {{else if (eq tour.accommodation.type 'retreat')}}Ретрит
+                    {{else}}Без размещения{{/if}}
+                  {{else}}
+                    Не указан
+                  {{/if}}
+                {{else}}
+                  Без размещения
+                {{/if}}
+              </p>
+              {{#if tour.accommodation}}
+                {{#if tour.accommodation.hotel}}
+                  {{#if (isObject tour.accommodation.hotel)}}
+                    <p><strong>Название:</strong> {{#if tour.accommodation.hotel.name}}{{tour.accommodation.hotel.name}}{{else}}Не указано{{/if}}</p>
+                    <p><strong>Рейтинг:</strong> {{#if tour.accommodation.hotel.rating}}{{tour.accommodation.hotel.rating}}/5{{else}}Не указан{{/if}}</p>
+                    <p><strong>Удобства:</strong> 
+                      {{#if tour.accommodation.hotel.amenities}}
+                        {{#each tour.accommodation.hotel.amenities}}
+                          {{this}}{{#unless @last}}, {{/unless}}
+                        {{else}}
+                          Нет удобств
+                        {{/each}}
+                      {{else}}
+                        Нет удобств
+                      {{/if}}
+                    </p>
+                    <p><strong>Типы номеров:</strong> 
+                      {{#if tour.accommodation.hotel.roomTypes}}
+                        {{#each tour.accommodation.hotel.roomTypes}}
+                          {{#if (eq this 'standard')}}Обычный
+                          {{else if (eq this 'standardWithAC')}}Обычный с кондиционером
+                          {{else}}Люкс{{/if}}{{#unless @last}}, {{/unless}}
+                        {{else}}
+                          Нет информации
+                        {{/each}}
+                      {{else}}
+                        Нет информации
+                      {{/if}}
+                    </p>
+                  {{else}}
+                    <p>Информация об отеле отсутствует</p>
+                  {{/if}}
+                {{else}}
+                  <p>Информация об отеле отсутствует</p>
+                {{/if}}
+              {{else}}
+                <p>Информация об отеле отсутствует</p>
+              {{/if}}
+            </div>
+            <div>
+              <h3 class="text-xl font-semibold mb-2">Сезон</h3>
+              <p><strong>Начало:</strong> {{#if tour.season.start}}{{formatDate tour.season.start}}{{else}}Не указано{{/if}}</p>
+              <p><strong>Конец:</strong> {{#if tour.season.end}}{{formatDate tour.season.end}}{{else}}Не указано{{/if}}</p>
+            </div>
+          </div>
 
-        <h3 class="text-xl font-semibold mt-6 mb-2">Экскурсии</h3>
-        <ul class="list-disc pl-6">
-          {{#each tour.excursions}}
-            <li>{{this.name}} ({{this.durationHours}} ч, {{this.price}} ₽)</li>
-          {{else}}
-            <p>Нет экскурсий</p>
-          {{/each}}
-        </ul>
+          <h3 class="text-xl font-semibold mt-6 mb-2">Активности</h3>
+          <ul class="list-disc pl-6">
+            {{#if tour.activities}}
+              {{#each tour.activities}}
+                <li>{{this.name}} ({{this.durationHours}} ч, {{#if this.equipmentRequired}}требуется оборудование{{else}}без оборудования{{/if}})</li>
+              {{else}}
+                <p>Нет активностей</p>
+              {{/each}}
+            {{else}}
+              <p>Нет активностей</p>
+            {{/if}}
+          </ul>
 
-        <h3 class="text-xl font-semibold mt-6 mb-2">Включённые услуги</h3>
-        <ul class="list-disc pl-6">
-          {{#each tour.includedServices}}
-            <li>{{this}}</li>
-          {{else}}
-            <p>Нет включённых услуг</p>
-          {{/each}}
-        </ul>
+          <h3 class="text-xl font-semibold mt-6 mb-2">Экскурсии</h3>
+          <ul class="list-disc pl-6">
+            {{#if tour.excursions}}
+              {{#each tour.excursions}}
+                <li>{{this.name}} ({{this.durationHours}} ч, {{this.price}} ₽)</li>
+              {{else}}
+                <p>Нет экскурсий</p>
+              {{/each}}
+            {{else}}
+              <p>Нет экскурсий</p>
+            {{/if}}
+          </ul>
+
+          <h3 class="text-xl font-semibold mt-6 mb-2">Включённые услуги</h3>
+          <ul class="list-disc pl-6">
+            {{#if tour.includedServices}}
+              {{#each tour.includedServices}}
+                <li>{{this}}</li>
+              {{else}}
+                <p>Нет включённых услуг</p>
+              {{/each}}
+            {{else}}
+              <p>Нет включённых услуг</p>
+            {{/if}}
+          </ul>
+        </div>
       </div>
     </div>
   </section>
@@ -229,25 +315,27 @@
   {{> footer}}
 
   <script>
-    window.tourData = {
-      id: '{{tour._id}}',
-      title: '{{tour.title}}',
-      type: '{{tour.type}}',
-      season: {
-        start: '{{seasonStart}}',
-        end: '{{seasonEnd}}'
-      },
-      maxGroupSize: {{tour.maxGroupSize}},
-      minGroupSize: {{tour.minGroupSize}},
-      durationDays: {{tour.durationDays}},
-      coordinates: {
-        lat: {{tour.location.coordinates.lat}},
-        lng: {{tour.location.coordinates.lng}}
-      }
-    };
+    try {
+      window.tourData = {{{json tour}}} || {
+        location: { coordinates: { lat: 44.7204, lng: 37.7716 }, region: 'Default Region' },
+        title: 'Тур',
+        route: [] // Убедимся, что route всегда определен
+      };
+      console.log('window.tourData initialized:', window.tourData);
+      console.log('Route data:', window.tourData.route); // Отладка маршрута
+    } catch (error) {
+      console.error('Error initializing window.tourData:', error);
+      window.tourData = {
+        location: { coordinates: { lat: 44.7204, lng: 37.7716 }, region: 'Default Region' },
+        title: 'Тур',
+        route: []
+      };
+    }
   </script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
   <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/ru.js'></script>
   <script src="/js/booking.js"></script>
+  <script src="/js/maps.js"></script>
 </body>
 </html>

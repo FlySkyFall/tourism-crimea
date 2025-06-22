@@ -33,15 +33,12 @@ router.get('/bookings', authenticateHotel, async (req, res) => {
     const { startDate, endDate, status } = req.query;
     const hotelId = req.hotelId;
 
-    // Базовый фильтр для бронирований
     let query = { hotelId }; // Ищем бронирования, где hotelId совпадает
 
-    // Фильтр по статусу
     if (status) {
       query.status = status;
     }
 
-    // Фильтр по датам
     if (startDate || endDate) {
       query.startDate = {};
       if (startDate) {
@@ -52,7 +49,6 @@ router.get('/bookings', authenticateHotel, async (req, res) => {
       }
     }
 
-    // Находим бронирования с популяцией необходимых данных
     const bookings = await Booking.find(query)
       .populate('userId', 'email profile.firstName profile.lastName')
       .populate('tourId', 'title accommodation')

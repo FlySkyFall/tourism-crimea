@@ -5,13 +5,57 @@ const User = require('../models/User');
 const HotelAvailability = require('../models/HotelAvailability');
 const mongoose = require('mongoose');
 
+
+exports.calculateTourPrice = (tour, participants, roomType, hotel, tourDate) => {
+  let totalPrice = tour.price * participants;
+
+  // Применение скидок
+  const currentDate = tourDate ? new Date(tourDate) : new Date();
+  let discountPercentage = 0;
+
+  // Скидка за группу
+  if (tour.discounts.groupDiscount.enabled && participants >= tour.discounts.groupDiscount.minParticipants) {
+    discountPercentage = Math.max(discountPercentage, tour.discounts.groupDiscount.percentage);
+  }
+
+  // Сезонная скидка
+  if (
+    tour.discounts.seasonalDiscount.enabled &&
+    currentDate >= new Date(tour.discounts.seasonalDiscount.startDate) &&
+    currentDate <= new Date(tour.discounts.seasonalDiscount.endDate)
+  ) {
+    discountPercentage = Math.max(discountPercentage, tour.discounts.seasonalDiscount.percentage);
+  }
+
+  // Скидка для горящего тура
+  if (tour.isHotDeal && tour.discounts.hotDealDiscount.enabled) {
+    discountPercentage = Math.max(discountPercentage, tour.discounts.hotDealDiscount.percentage);
+  }
+
+  // Применяем максимальную скидку
+  if (discountPercentage > 0) {
+    totalPrice *= (1 - discountPercentage / 100);
+  }
+
+  // Наценка за тип номера
+  if (['hotel', 'sanatorium'].includes(tour.accommodation.type) && roomType && hotel) {
+    if (roomType === 'standardWithAC') {
+      totalPrice *= 1.10; // Наценка 10% за номер с кондиционером
+    } else if (roomType === 'luxury') {
+      const luxuryMarkup = hotel.rating > 4 ? 1.30 : 1.20; // 30% для рейтинга > 4, иначе 20%
+      totalPrice *= luxuryMarkup;
+    }
+  }
+
+  return Math.round(totalPrice);
+};
 exports.createBooking = async (req, res) => {
   try {
     if (!req.user) {
       return res.status(401).json({ error: 'Требуется авторизация' });
     }
 
-    const { tourId, hotelId, startDate, endDate, participants, roomType, tourDate } = req.body;
+    const { tourId, hotelId, startDate, endDate, participants, roomType, tourDate, totalPrice } = req.body;
 
     if (!tourId && !hotelId) {
       return res.status(400).json({ error: 'Не указан tourId или hotelId' });
@@ -21,7 +65,6 @@ exports.createBooking = async (req, res) => {
       return res.status(400).json({ error: 'Неверный идентификатор тура или отеля' });
     }
 
-    // Для туров используем tourDate, если startDate не предоставлен
     const effectiveStartDate = tourId ? (tourDate || startDate) : startDate;
     if (!effectiveStartDate) {
       return res.status(400).json({ error: 'Дата начала обязательна' });
@@ -47,7 +90,6 @@ exports.createBooking = async (req, res) => {
         return res.status(404).json({ error: 'Тур не найден' });
       }
 
-      // Проверка roomType для туров с отелем или санаторием
       if (['hotel', 'sanatorium'].includes(tour.accommodation.type)) {
         if (!roomType || !['standard', 'standardWithAC', 'luxury'].includes(roomType)) {
           return res.status(400).json({ error: 'Необходимо выбрать тип номера: обычный, обычный с кондиционером или люкс' });
@@ -76,48 +118,50 @@ exports.createBooking = async (req, res) => {
       }
 
       const tourDates = [];
-      for (let i = 0; i < tour.durationDays; i++) {
-        const date = new Date(selectedDate);
-        date.setDate(selectedDate.getDate() + i);
+      for (let d = new Date(selectedDate); d <= new Date(selectedDate.getTime() + (tour.durationDays - 1) * 86400000); d.setDate(d.getDate() + 1)) {
+        const date = new Date(d); // Сохраняем дату перед увеличением
+        date.setHours(0, 0, 0, 0);
         tourDates.push(date);
       }
 
-      // Рассчитываем endDate для тура
       const endDateObj = new Date(selectedDate);
       endDateObj.setDate(selectedDate.getDate() + tour.durationDays - 1);
       bookingData.endDate = endDateObj;
 
-      // Проверка доступности для тура
-      const availabilities = await HotelAvailability.find({
-        hotelId: tour.accommodation.hotel?._id,
-        date: { $in: tourDates.map(d => new Date(d.setHours(0, 0, 0, 0))) },
-      });
-
-      const missingDates = tourDates.filter(d => !availabilities.find(a => a.date.getTime() === new Date(d.setHours(0, 0, 0, 0)).getTime()));
-      for (const date of missingDates) {
-        const newAvailability = new HotelAvailability({
-          hotelId: tour.accommodation.hotel?._id,
-          date: new Date(date.setHours(0, 0, 0, 0)),
-          availableSlots: tour.accommodation.hotel?.capacity || maxCapacity,
+      if (['hotel', 'sanatorium'].includes(tour.accommodation.type) && tour.accommodation.hotel?._id) {
+        const availabilities = await HotelAvailability.find({
+          hotelId: tour.accommodation.hotel._id,
+          date: { $in: tourDates.map(d => d) },
         });
-        await newAvailability.save();
-        availabilities.push(newAvailability);
-      }
 
-      for (const availability of availabilities) {
-        if (availability.availableSlots < participants) {
-          return res.status(400).json({ 
-            error: `Недостаточно мест на ${new Date(availability.date).toLocaleDateString('ru-RU')}: доступно ${availability.availableSlots}` 
+        const missingDates = tourDates.filter(d => !availabilities.find(a => a.date.getTime() === d.getTime()));
+        for (const date of missingDates) {
+          const newAvailability = new HotelAvailability({
+            hotelId: tour.accommodation.hotel._id,
+            date,
+            availableSlots: tour.accommodation.hotel?.capacity || maxCapacity,
           });
+          await newAvailability.save();
+          availabilities.push(newAvailability);
+        }
+
+        for (const availability of availabilities) {
+          if (availability.availableSlots < participants) {
+            return res.status(400).json({ 
+              error: `Недостаточно мест на ${new Date(availability.date).toLocaleDateString('ru-RU')}: доступно ${availability.availableSlots}` 
+            });
+          }
         }
       }
 
       bookingData.tourId = tourId;
       bookingData.roomType = ['hotel', 'sanatorium'].includes(tour.accommodation.type) ? roomType : undefined;
-      // Добавляем hotelId для туров с отелем или санаторием
       if (['hotel', 'sanatorium'].includes(tour.accommodation.type) && tour.accommodation.hotel?._id) {
         bookingData.hotelId = tour.accommodation.hotel._id;
       }
+
+      // Рассчитываем итоговую цену для тура
+      bookingData.totalPrice = this.calculateTourPrice(tour, participants, roomType, tour.accommodation.hotel, selectedDate);
     } else if (hotelId) {
       const hotel = await Hotel.findById(hotelId);
       if (!hotel) {
@@ -147,7 +191,9 @@ exports.createBooking = async (req, res) => {
 
       const hotelDates = [];
       for (let d = new Date(selectedDate); d <= endDateObj; d.setDate(d.getDate() + 1)) {
-        hotelDates.push(new Date(d.setHours(0, 0, 0, 0)));
+        const date = new Date(d); // Сохраняем дату перед увеличением
+        date.setHours(0, 0, 0, 0);
+        hotelDates.push(date);
       }
 
       const availabilities = await HotelAvailability.find({
@@ -166,10 +212,12 @@ exports.createBooking = async (req, res) => {
         availabilities.push(newAvailability);
       }
 
-      for (const availability of availabilities) {
-        if (availability.availableSlots < participants) {
+      // Проверяем доступность для каждого дня, включая последний
+      for (const date of hotelDates) {
+        const availability = availabilities.find(a => a.date.getTime() === date.getTime());
+        if (availability && availability.availableSlots < participants) {
           return res.status(400).json({ 
-            error: `Недостаточно мест на ${new Date(availability.date).toLocaleDateString('ru-RU')}: доступно ${availability.availableSlots}` 
+            error: `Недостаточно мест на ${date.toLocaleDateString('ru-RU')}: доступно ${availability.availableSlots}` 
           });
         }
       }
@@ -177,11 +225,22 @@ exports.createBooking = async (req, res) => {
       bookingData.hotelId = hotelId;
       bookingData.endDate = endDateObj;
       bookingData.roomType = roomType;
+
+      // Рассчитываем итоговую цену для отеля
+      const nights = Math.ceil((endDateObj - selectedDate) / (1000 * 60 * 60 * 24)); // Количество ночей
+      let basePrice = hotel.basePrice; // Базовая цена за ночь из модели Hotel
+      if (roomType === 'standardWithAC') {
+        basePrice *= 1.10; // Наценка 10% за кондиционер
+      } else if (roomType === 'luxury') {
+        basePrice *= (hotel.rating > 4 ? 1.30 : 1.20); // 30% для рейтинга > 4, иначе 20%
+      }
+      bookingData.totalPrice = Math.round(basePrice * (nights + 1) * participants); // Учитываем последний день
     }
 
     const activeBooking = await Booking.findOne({
       userId: req.user._id,
-      status: { $in: ['pending', 'confirmed'] }
+      status: { $in: ['pending', 'confirmed'] },
+      endDate: { $gte: new Date() }
     });
     if (activeBooking) {
       return res.status(400).json({ error: 'У вас уже есть активное бронирование' });
@@ -203,6 +262,7 @@ exports.createBooking = async (req, res) => {
           participants,
           roomType: booking.roomType,
           paymentStatus: 'pending',
+          totalPrice: booking.totalPrice // Добавляем totalPrice
         },
       },
     });
@@ -216,8 +276,6 @@ exports.createBooking = async (req, res) => {
     return res.status(500).json({ error: `Ошибка бронирования: ${error.message}` });
   }
 };
-
-// Остальные методы (getUserBookings, processPayment, cancelBooking, getHotelAvailability, cleanExpiredBookings) остаются без изменений
 exports.getUserBookings = async (req, res) => {
   try {
     if (!req.user) {
@@ -423,7 +481,6 @@ exports.cancelBooking = async (req, res) => {
     return res.status(500).json({ error: `Ошибка отмены бронирования: ${error.message}` });
   }
 };
-
 exports.getHotelAvailability = async (req, res) => {
   try {
     const hotelId = req.params.id;
@@ -448,7 +505,8 @@ exports.getHotelAvailability = async (req, res) => {
 
     const events = [];
     for (let d = new Date(today); d <= endDate; d.setDate(d.getDate() + 1)) {
-      const date = new Date(d.setHours(0, 0, 0, 0));
+      const date = new Date(d); // Сохраняем дату перед увеличением
+      date.setHours(0, 0, 0, 0);
       let availableSlots = hotel.capacity;
 
       const availability = availabilities.find(a => a.date.getTime() === date.getTime());
@@ -464,8 +522,11 @@ exports.getHotelAvailability = async (req, res) => {
         availableSlots = hotel.capacity;
       }
 
+      // Сдвигаем дату события на +1 день
+      const shiftedDate = new Date(date);
+      shiftedDate.setDate(date.getDate() + 1);
       events.push({
-        start: date.toISOString().split('T')[0],
+        start: shiftedDate.toISOString().split('T')[0],
         availableSlots,
         title: availableSlots >= 1 ? `Доступно: ${availableSlots}` : 'Недоступно',
         color: availableSlots >= 1 ? '#28a745' : '#dc3545',
